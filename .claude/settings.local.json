@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod:*)",
+      "Bash(mkdir:*)",
+      "Bash(go test:*)",
+      "Bash(export:*)",
+      "Bash(go get:*)",
+      "Bash(go run:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(mysql:*)",
+      "Bash(\"S:\\\\software\\\\mysql\\\\mysql-8.0.18-winx64\\\\bin\\\\mysql.exe\":*)",
+      "Bash(powershell:*)",
+      "Bash(true:*)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+baby-fans.db
+uploads/*
+!uploads/.gitkeep
+

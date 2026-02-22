@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baby-Fans 宝贝积分管理系统 - 设计图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+
+  :root {
+    --yellow: #FFD93D;
+    --orange: #FF6B35;
+    --pink: #FF8FAB;
+    --purple: #C77DFF;
+    --blue: #4CC9F0;
+    --green: #52B788;
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --text: #2D2D2D;
+    --text2: #888;
+    --radius: 20px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Nunito', 'PingFang SC', sans-serif;
+    background: linear-gradient(135deg, #FFF9F0 0%, #FFF0F5 50%, #F0F5FF 100%);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ========== LAYOUT ========== */
+  .page-header {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+  .page-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 52px;
+    background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .page-header p {
+    font-size: 16px;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: var(--text);
+    text-align: center;
+    padding: 40px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .section-title .badge {
+    background: var(--orange);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .screens-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 20px 40px 60px;
+    justify-content: center;
+  }
+
+  /* ========== PHONE FRAME ========== */
+  .phone {
+    width: 320px;
+    min-height: 620px;
+    background: var(--card);
+    border-radius: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 8px #2D2D2D, 0 0 0 10px #444;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .phone-notch {
+    background: #2D2D2D;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .phone-notch::after {
+    content: '';
+    width: 100px;
+    height: 22px;
+    background: #2D2D2D;
+    border-radius: 0 0 16px 16px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 3px solid #1a1a1a;
+  }
+  .phone-screen {
+    height: calc(100% - 36px);
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+  }
+  .phone-label {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text2);
+    letter-spacing: 0.5px;
+  }
+
+  /* ========== STATUS BAR ========== */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ========== NAV BAR ========== */
+  .nav-bar {
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 2px solid #F0F0F0;
+    padding: 8px 0 12px;
+    z-index: 10;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text2);
+  }
+  .nav-item.active { color: var(--orange); }
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .nav-item.active .nav-icon {
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+  }
+
+  /* ========== COMMON COMPONENTS ========== */
+  .header-bar {
+    padding: 12px 20px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-bar h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: var(--text);
+  }
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: #F5F5F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    margin: 0 16px 12px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .tag-add { background: #E8F8F0; color: var(--green); }
+  .tag-minus { background: #FFECEC; color: #FF4D4D; }
+  .tag-gift { background: #FFF0F5; color: var(--pink); }
+
+  /* ========== STARS DECORATION ========== */
+  .stars-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    font-size: 12px;
+    opacity: 0.15;
+  }
+
+  /* ========== HERO SCORE CARD ========== */
+  .hero-card {
+    margin: 8px 16px;
+    border-radius: 24px;
+    padding: 24px 20px;
+    background: linear-gradient(135deg, #FF6B35, #FF8FAB, #C77DFF);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card .score-label {
+    font-size: 13px;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+  .hero-card .score-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 56px;
+    line-height: 1;
+    margin: 4px 0;
+  }
+  .hero-card .score-unit {
+    font-size: 18px;
+    opacity: 0.85;
+    font-weight: 700;
+  }
+  .hero-card .avatar {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 52px;
+  }
+  .hero-deco {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    bottom: -40px;
+    left: -20px;
+  }
+  .hero-deco2 {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    top: -20px;
+    right: 80px;
+  }
+
+  /* ========== RECORD ITEM ========== */
+  .record-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F5F5F5;
+  }
+  .record-item:last-child { border-bottom: none; }
+  .record-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .record-info { flex: 1; }
+  .record-info .title { font-size: 13px; font-weight: 700; }
+  .record-info .time { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .record-score {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+  }
+  .plus { color: var(--green); }
+  .minus { color: #FF4D4D; }
+  .gift-score { color: var(--purple); }
+
+  /* ========== SHOP ITEM ========== */
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 16px;
+    padding: 12px;
+    margin: 0 16px 10px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  }
+  .shop-emoji {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FFF0D0, #FFE0B0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex-shrink: 0;
+  }
+  .shop-info { flex: 1; }
+  .shop-info .name { font-size: 14px; font-weight: 800; }
+  .shop-info .score {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--orange);
+    margin-top: 2px;
+  }
+  .shop-info .stock { font-size: 11px; color: var(--text2); }
+  .btn-exchange {
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-exchange.disabled {
+    background: #E0E0E0;
+    color: #999;
+  }
+
+  /* ========== CHILD CARD ========== */
+  .child-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 18px;
+    padding: 14px;
+    margin: 0 16px 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+  .child-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: linear-gradient(135deg, #FFE0B0, #FFD0D0);
+    flex-shrink: 0;
+  }
+  .child-info .name { font-size: 16px; font-weight: 800; }
+  .child-info .score-small {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: var(--orange);
+  }
+  .child-info .score-small span { font-size: 12px; color: var(--text2); font-family: 'Nunito'; }
+  .arrow { margin-left: auto; color: var(--text2); font-size: 18px; }
+
+  /* ========== SNIPPET CARD ========== */
+  .snippet {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 2px solid #F0F0F0;
+    border-radius: 14px;
+    padding: 8px 14px;
+    margin: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .snippet .pts {
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: var(--orange);
+  }
+
+  /* ========== FACE PHOTO ========== */
+  .face-photo {
+    width: 68px;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .face-photo .photo-box {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, #E8F4FF, #D0E8FF);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+  .face-photo .photo-time {
+    background: #2D2D2D;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    padding: 3px;
+  }
+
+  /* ========== LOGIN PAGE ========== */
+  .login-bg {
+    background: linear-gradient(160deg, #FF6B35 0%, #FF8FAB 40%, #C77DFF 80%, #4CC9F0 100%);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 24px 20px;
+    position: relative;
+  }
+  .login-logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 36px;
+    color: white;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .login-sub { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 32px; }
+  .face-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: 4px solid rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .face-scan-ring {
+    position: absolute;
+    top: -8px; left: -8px; right: -8px; bottom: -8px;
+    border-radius: 50%;
+    border: 3px dashed rgba(255,255,255,0.4);
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .login-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    width: 100%;
+    margin-top: 20px;
+  }
+  .login-input {
+    width: 100%;
+    border: 2px solid #F0F0F0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    outline: none;
+    margin-bottom: 12px;
+    letter-spacing: 4px;
+    text-align: center;
+  }
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    color: white;
+    font-size: 16px;
+    font-weight: 800;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  /* ========== IDENTITY SELECT ========== */
+  .identity-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border: 3px solid transparent;
+    border-radius: 20px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .identity-btn.selected { border-color: var(--orange); }
+  .identity-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+  .identity-btn .i-label { font-size: 18px; font-weight: 800; }
+  .identity-btn .i-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  /* ========== DIVIDER ========== */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 700;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #F0F0F0;
+  }
+
+  /* ========== SCORE INPUT ========== */
+  .score-input-big {
+    text-align: center;
+    padding: 24px 20px;
+    background: white;
+    margin: 0 16px 12px;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .score-input-big .label { font-size: 13px; color: var(--text2); font-weight: 700; }
+  .score-input-big .num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 64px;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+  }
+  .toggle-row {
+    display: flex;
+    gap: 10px;
+    margin: 0 16px 12px;
+  }
+  .toggle-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 14px;
+    border: 2px solid #F0F0F0;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+  }
+  .toggle-btn.add { border-color: var(--green); color: var(--green); background: #E8F8F0; }
+  .toggle-btn.sub { border-color: #FF4D4D; color: #FF4D4D; background: #FFECEC; }
+
+  /* ========== PENDING ITEM ========== */
+  .pending-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 16px;
+    margin: 0 16px 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  }
+  .pending-emoji {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #FFF5E0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .pending-info { flex: 1; }
+  .pending-info .title { font-size: 13px; font-weight: 800; }
+  .pending-info .sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .btn-redeem {
+    background: var(--green);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    border: none;
+    border-radius: 10px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+
+  /* ========== SCORE CHART ========== */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 50px;
+    padding: 0 4px;
+  }
+  .chart-bar {
+    flex: 1;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(to top, var(--orange), var(--yellow));
+    opacity: 0.7;
+  }
+
+  /* ========== SCROLL AREA ========== */
+  .scroll-area {
+    overflow-y: auto;
+    height: calc(100% - 120px);
+    padding-bottom: 72px;
+  }
+
+  /* ========== PAGE WRAPPERS ========== */
+  .page-bg-kid {
+    background: linear-gradient(180deg, #FFF5E8 0%, #FFF9F0 100%);
+    min-height: 100%;
+  }
+  .page-bg-parent {
+    background: linear-gradient(180deg, #F0F5FF 0%, #F5F0FF 100%);
+    min-height: 100%;
+  }
+
+  /* Sub-section */
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 6px;
+  }
+  .section-head h3 { font-size: 14px; font-weight: 800; color: var(--text); }
+  .section-head a { font-size: 12px; color: var(--orange); font-weight: 700; }
+
+  /* Quick stats */
+  .quick-stats {
+    display: flex;
+    gap: 10px;
+    margin: 0 16px 12px;
+  }
+  .stat-box {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  }
+  .stat-box .val {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: var(--orange);
+  }
+  .stat-box .lbl { font-size: 11px; color: var(--text2); font-weight: 700; margin-top: 2px; }
+
+  /* Record detail overlay */
+  .detail-overlay {
+    background: white;
+    min-height: 100%;
+    padding: 20px 16px;
+  }
+  .detail-amount {
+    text-align: center;
+    padding: 32px 20px;
+    background: linear-gradient(135deg, #E8F8F0, #F0FFF8);
+    border-radius: 24px;
+    margin-bottom: 16px;
+  }
+  .detail-amount .amt {
+    font-family: 'Fredoka One', cursive;
+    font-size: 64px;
+    color: var(--green);
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F5F5F5;
+    font-size: 13px;
+  }
+  .detail-row .key { color: var(--text2); font-weight: 700; }
+  .detail-row .val { font-weight: 800; }
+
+  /* Floating add button */
+  .fab {
+    position: absolute;
+    bottom: 78px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 480px) {
+    .screens-grid { padding: 10px 16px 40px; gap: 20px; }
+    .phone { width: 280px; }
+  }
+
+  /* Section separator */
+  .sep {
+    height: 4px;
+    background: linear-gradient(90deg, var(--orange), var(--pink), var(--purple), var(--blue));
+    margin: 0;
+    opacity: 0.3;
+  }
+
+  .user-code {
+    background: linear-gradient(135deg, #FFF5E8, #FFE8D0);
+    border: 2px dashed var(--orange);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin: 0 16px 12px;
+    text-align: center;
+  }
+  .user-code .label { font-size: 11px; color: var(--text2); font-weight: 700; }
+  .user-code .code {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: var(--orange);
+    letter-spacing: 4px;
+    margin-top: 4px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 6px 16px 10px;
+  }
+  .tab {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text2);
+    background: #F0F0F0;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    color: white;
+  }
+
+  .scroll-area-short {
+    overflow-y: auto;
+    padding-bottom: 80px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>🌟 Baby-Fans</h1>
+  <p>宝贝积分管理系统 · 完整页面设计图</p>
+</div>
+
+<!-- ======================== LOGIN ======================== -->
+<div class="section-title">
+  🔑 登录模块
+  <span class="badge">2 screens</span>
+</div>
+<div class="screens-grid">
+
+  <!-- Login Main -->
+  <div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="login-bg">
+          <div class="status-bar" style="color:rgba(255,255,255,0.9)">
+            <span>9:41</span><span>📶 🔋</span>
+          </div>
+          <div class="login-logo">🌟 Baby-Fans</div>
+          <div class="login-sub">让成长更有趣</div>
+          <div class="face-circle">
+            <div class="face-scan-ring"></div>
+            😊
+          </div>
+          <div style="color:white;font-size:13px;font-weight:800;margin-bottom:20px;opacity:0.9;">点击开始人脸识别登录</div>
+          <div class="login-card">
+            <div class="divider">或使用登录码</div>
+            <input class="login-input" placeholder="请输入 6 位登录码" style="margin-bottom:12px;display:block;">
+            <button class="btn-primary">登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">登录页</div>
+  </div>
+
+  <!-- Identity Select -->
+  <div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="login-bg" style="padding-top:20px;">
+          <div class="status-bar" style="color:rgba(255,255,255,0.9);width:100%">
+            <span>9:41</span><span>📶 🔋</span>
+          </div>
+          <div style="font-family:'Fredoka One',cursive;font-size:26px;color:white;margin:24px 0 8px;text-align:center;">欢迎回来！</div>
+          <div style="color:rgba(255,255,255,0.85);font-size:14px;margin-bottom:28px;">请选择你的身份</div>
+          
+          <div style="background:rgba(255,255,255,0.15);border-radius:20px;padding:12px;width:80px;height:80px;font-size:44px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">😊</div>
+          
+          <div style="width:100%;margin-top:8px;">
+            <div class="identity-btn selected" style="margin-bottom:12px;">
+              <div class="identity-icon" style="background:linear-gradient(135deg,#FFE0B0,#FFD0A0);">👧</div>
+              <div>
+                <div class="i-label">我是孩子</div>
+                <div class="i-desc">查看积分、逛商城、兑好礼</div>
+              </div>
+              <div style="margin-left:auto;color:var(--orange);font-size:20px;">✓</div>
+            </div>
+            <div class="identity-btn">
+              <div class="identity-icon" style="background:linear-gradient(135deg,#D0E8FF,#C0D8FF);">👨‍👩‍👧</div>
+              <div>
+                <div class="i-label">我是家长</div>
+                <div class="i-desc">管理积分、添加奖励商品</div>
+              </div>
+            </div>
+            <button class="btn-primary" style="margin-top:16px;background:white;color:var(--orange);">确认进入 →</button>
+          </div>
+
+          <div class="user-code" style="margin-top:16px;width:100%;background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.5);">
+            <div class="label" style="color:rgba(255,255,255,0.8);">你的登录码</div>
+            <div class="code" style="color:white;">AB8847</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">身份选择页</div>
+  </div>
+
+</div>
+
+<div class="sep"></div>
+
+<!-- ======================== CHILD ======================== -->
+<div class="section-title">
+  👧 孩子端
+  <span class="badge">5 screens</span>
+</div>
+<div class="screens-grid">
+
+  <!-- Kid: Score Overview -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#FFF5E8;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>我的积分 ⭐</h2>
+          <div class="btn-icon">🔔</div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-deco"></div>
+          <div class="hero-deco2"></div>
+          <div class="score-label">当前积分</div>
+          <div class="score-num">2,480</div>
+          <div class="score-unit">⭐ 积分</div>
+          <div class="avatar">🐻</div>
+        </div>
+
+        <div class="quick-stats">
+          <div class="stat-box">
+            <div class="val" style="color:var(--green);">+380</div>
+            <div class="lbl">本周获得</div>
+          </div>
+          <div class="stat-box">
+            <div class="val" style="color:#FF4D4D;">-120</div>
+            <div class="lbl">本周花费</div>
+          </div>
+          <div class="stat-box">
+            <div class="val" style="color:var(--purple);">3</div>
+            <div class="lbl">兑换次数</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0 16px 12px;">
+          <div style="font-size:13px;font-weight:800;margin-bottom:10px;color:var(--text2);">本周积分趋势</div>
+          <div class="mini-chart">
+            <div class="chart-bar" style="height:30%"></div>
+            <div class="chart-bar" style="height:55%"></div>
+            <div class="chart-bar" style="height:40%"></div>
+            <div class="chart-bar" style="height:80%"></div>
+            <div class="chart-bar" style="height:65%"></div>
+            <div class="chart-bar" style="height:90%"></div>
+            <div class="chart-bar" style="height:70%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:4px;padding:0 4px;">
+            <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h3>最近记录</h3>
+          <a>查看全部 →</a>
+        </div>
+        <div class="card" style="margin:0 16px;">
+          <div class="record-item">
+            <div class="record-icon" style="background:#E8F8F0;">🎯</div>
+            <div class="record-info">
+              <div class="title">完成数学作业</div>
+              <div class="time">今天 08:30</div>
+            </div>
+            <div class="record-score plus">+50</div>
+          </div>
+          <div class="record-item">
+            <div class="record-icon" style="background:#FFF0F5;">🎁</div>
+            <div class="record-info">
+              <div class="title">爸爸赠送</div>
+              <div class="time">昨天 20:00</div>
+            </div>
+            <div class="record-score gift-score">+100</div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item active"><div class="nav-icon">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">📋</div>记录</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛍️</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">孩子-积分概览</div>
+  </div>
+
+  <!-- Kid: Records -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#FFF5E8;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>积分记录 📋</h2>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active">全部</div>
+          <div class="tab">增加</div>
+          <div class="tab">减少</div>
+          <div class="tab">赠与</div>
+        </div>
+
+        <div style="padding-bottom:72px;">
+          <div style="padding:6px 16px 4px;font-size:12px;font-weight:800;color:var(--text2);">2025年2月</div>
+          <div class="card" style="margin:0 16px 4px;">
+            <div class="record-item" style="cursor:pointer;">
+              <div class="record-icon" style="background:#E8F8F0;">📚</div>
+              <div class="record-info">
+                <div class="title">完成阅读任务</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>2月22日 19:00</span>
+                  <span class="tag tag-add">+增加</span>
+                </div>
+              </div>
+              <div class="record-score plus">+30</div>
+            </div>
+            <div class="record-item" style="cursor:pointer;">
+              <div class="record-icon" style="background:#E8F8F0;">🎯</div>
+              <div class="record-info">
+                <div class="title">完成数学作业</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>2月22日 08:30</span>
+                  <span class="tag tag-add">+增加</span>
+                </div>
+              </div>
+              <div class="record-score plus">+50</div>
+            </div>
+            <div class="record-item" style="cursor:pointer;">
+              <div class="record-icon" style="background:#FFF0F5;">🎁</div>
+              <div class="record-info">
+                <div class="title">爸爸赠送</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>2月21日 20:00</span>
+                  <span class="tag tag-gift">赠与</span>
+                </div>
+              </div>
+              <div class="record-score gift-score">+100</div>
+            </div>
+            <div class="record-item" style="cursor:pointer;">
+              <div class="record-icon" style="background:#FFECEC;">🛒</div>
+              <div class="record-info">
+                <div class="title">兑换玩具积木</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>2月20日 16:00</span>
+                  <span class="tag tag-minus">-减少</span>
+                </div>
+              </div>
+              <div class="record-score minus">-200</div>
+            </div>
+            <div class="record-item" style="cursor:pointer;">
+              <div class="record-icon" style="background:#FFECEC;">😅</div>
+              <div class="record-info">
+                <div class="title">忘做家务</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>2月19日 21:00</span>
+                  <span class="tag tag-minus">-减少</span>
+                </div>
+              </div>
+              <div class="record-score minus">-20</div>
+            </div>
+          </div>
+
+          <div style="padding:10px 16px 4px;font-size:12px;font-weight:800;color:var(--text2);">2025年1月</div>
+          <div class="card" style="margin:0 16px 4px;">
+            <div class="record-item">
+              <div class="record-icon" style="background:#E8F8F0;">🏆</div>
+              <div class="record-info">
+                <div class="title">期末考试优秀</div>
+                <div class="time" style="display:flex;gap:6px;align-items:center;">
+                  <span>1月31日 18:00</span>
+                  <span class="tag tag-add">+增加</span>
+                </div>
+              </div>
+              <div class="record-score plus">+200</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item active"><div class="nav-icon">📋</div>记录</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛍️</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">孩子-积分记录</div>
+  </div>
+
+  <!-- Kid: Record Detail -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#FFF5E8;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <div class="btn-icon" style="cursor:pointer;">←</div>
+          <h2>记录详情</h2>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div style="padding:0 16px 80px;">
+          <div class="detail-overlay" style="border-radius:24px;padding:20px;">
+            <div class="detail-amount">
+              <div style="font-size:13px;color:var(--text2);font-weight:700;margin-bottom:8px;">积分增加</div>
+              <div class="amt">+ 50</div>
+              <div style="font-size:13px;color:var(--green);font-weight:700;margin-top:4px;">⭐ 积分</div>
+            </div>
+            
+            <div style="background:#F9F9F9;border-radius:18px;padding:16px;margin-top:12px;">
+              <div class="detail-row">
+                <span class="key">时间</span>
+                <span class="val">2025-02-22 08:30</span>
+              </div>
+              <div class="detail-row">
+                <span class="key">类型</span>
+                <span class="val"><span class="tag tag-add">增加</span></span>
+              </div>
+              <div class="detail-row">
+                <span class="key">操作人</span>
+                <span class="val">👨‍💼 爸爸</span>
+              </div>
+              <div class="detail-row">
+                <span class="key">积分原因</span>
+                <span class="val" style="max-width:150px;text-align:right;">完成数学作业，表现优秀！</span>
+              </div>
+              <div class="detail-row" style="border-bottom:none;">
+                <span class="key">当前余额</span>
+                <span class="val" style="font-family:'Fredoka One',cursive;font-size:20px;color:var(--orange);">2,480 ⭐</span>
+              </div>
+            </div>
+
+            <div style="background:linear-gradient(135deg,#FFF5E0,#FFECD0);border-radius:18px;padding:16px;margin-top:12px;display:flex;gap:12px;align-items:center;">
+              <div style="font-size:36px;">🎉</div>
+              <div>
+                <div style="font-size:14px;font-weight:800;">太棒了！</div>
+                <div style="font-size:12px;color:var(--text2);margin-top:2px;">继续努力可以获得更多积分哦～</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">孩子-记录详情</div>
+  </div>
+
+  <!-- Kid: Shop -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#FFF5E8;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>积分商城 🛍️</h2>
+          <div style="display:flex;gap:6px;">
+            <div style="background:linear-gradient(135deg,var(--orange),var(--pink));color:white;padding:6px 12px;border-radius:12px;font-size:12px;font-weight:800;">⭐ 2,480</div>
+          </div>
+        </div>
+
+        <div style="padding:4px 16px 10px;">
+          <div style="background:white;border-radius:16px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <span>🔍</span>
+            <span style="font-size:13px;color:var(--text2);">搜索商品...</span>
+          </div>
+        </div>
+
+        <div style="padding-bottom:80px;">
+          <div class="shop-item">
+            <div class="shop-emoji">🧸</div>
+            <div class="shop-info">
+              <div class="name">毛绒玩具熊</div>
+              <div class="score">500 ⭐</div>
+              <div class="stock">库存：3 件</div>
+            </div>
+            <button class="btn-exchange">兑换</button>
+          </div>
+          <div class="shop-item">
+            <div class="shop-emoji">🍕</div>
+            <div class="shop-info">
+              <div class="name">披萨一份</div>
+              <div class="score">300 ⭐</div>
+              <div class="stock">库存：2 件</div>
+            </div>
+            <button class="btn-exchange">兑换</button>
+          </div>
+          <div class="shop-item">
+            <div class="shop-emoji">🎮</div>
+            <div class="shop-info">
+              <div class="name">游戏时间 1h</div>
+              <div class="score">200 ⭐</div>
+              <div class="stock">库存：5 件</div>
+            </div>
+            <button class="btn-exchange">兑换</button>
+          </div>
+          <div class="shop-item">
+            <div class="shop-emoji">🎬</div>
+            <div class="shop-info">
+              <div class="name">看电影一次</div>
+              <div class="score">400 ⭐</div>
+              <div class="stock">库存：1 件</div>
+            </div>
+            <button class="btn-exchange">兑换</button>
+          </div>
+          <div class="shop-item">
+            <div class="shop-emoji">🍦</div>
+            <div class="shop-info">
+              <div class="name">冰淇淋</div>
+              <div class="score">100 ⭐</div>
+              <div class="stock" style="color:#FF4D4D;">已售罄</div>
+            </div>
+            <button class="btn-exchange disabled">兑换</button>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">📋</div>记录</div>
+          <div class="nav-item active"><div class="nav-icon">🛍️</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">孩子-积分商城</div>
+  </div>
+
+  <!-- Kid: Profile -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#FFF5E8;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>我的 👤</h2>
+        </div>
+
+        <!-- Profile Card -->
+        <div style="margin:0 16px 16px;background:linear-gradient(135deg,#FF6B35,#FF8FAB);border-radius:24px;padding:20px;color:white;display:flex;align-items:center;gap:16px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:34px;border:3px solid rgba(255,255,255,0.5);">🐻</div>
+          <div>
+            <div style="font-size:18px;font-weight:800;">小熊同学</div>
+            <div style="font-size:12px;opacity:0.85;margin-top:2px;">登录码：AB8847</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h3>待兑现列表</h3>
+          <span style="background:var(--orange);color:white;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:800;">2 件</span>
+        </div>
+        <div class="pending-item">
+          <div class="pending-emoji">🧸</div>
+          <div class="pending-info">
+            <div class="title">毛绒玩具熊</div>
+            <div class="sub">兑换于 2月20日 · 500 ⭐</div>
+          </div>
+          <div style="font-size:11px;background:#FFF5E0;color:var(--orange);padding:5px 10px;border-radius:10px;font-weight:800;">待兑现</div>
+        </div>
+        <div class="pending-item">
+          <div class="pending-emoji">🎮</div>
+          <div class="pending-info">
+            <div class="title">游戏时间 1h</div>
+            <div class="sub">兑换于 2月18日 · 200 ⭐</div>
+          </div>
+          <div style="font-size:11px;background:#FFF5E0;color:var(--orange);padding:5px 10px;border-radius:10px;font-weight:800;">待兑现</div>
+        </div>
+
+        <div class="section-head" style="margin-top:8px;">
+          <h3>兑换记录</h3>
+          <a>查看全部 →</a>
+        </div>
+        <div style="margin:0 16px;background:white;border-radius:16px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.05);">
+          <div class="record-item" style="padding:12px 14px;">
+            <div class="record-icon" style="background:#E8F8F0;">🍕</div>
+            <div class="record-info">
+              <div class="title">披萨一份</div>
+              <div class="time">2月15日 · 已兑现</div>
+            </div>
+            <div class="record-score minus">-300</div>
+          </div>
+          <div class="record-item" style="padding:12px 14px;">
+            <div class="record-icon" style="background:#E8F8F0;">🍦</div>
+            <div class="record-info">
+              <div class="title">冰淇淋</div>
+              <div class="time">2月10日 · 已兑现</div>
+            </div>
+            <div class="record-score minus">-100</div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">📋</div>记录</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛍️</div>商城</div>
+          <div class="nav-item active"><div class="nav-icon">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">孩子-我的</div>
+  </div>
+
+</div>
+
+<div class="sep"></div>
+
+<!-- ======================== PARENT ======================== -->
+<div class="section-title">
+  👨‍👩‍👧 家长端
+  <span class="badge" style="background:var(--purple);">6 screens</span>
+</div>
+<div class="screens-grid">
+
+  <!-- Parent: Children Overview -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>孩子积分 👧👦</h2>
+          <div class="btn-icon">➕</div>
+        </div>
+
+        <!-- Summary Hero -->
+        <div style="margin:0 16px 12px;background:linear-gradient(135deg,#7B5EA7,#4CC9F0);border-radius:24px;padding:20px;color:white;position:relative;overflow:hidden;">
+          <div style="position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.08);bottom:-30px;right:-20px;"></div>
+          <div style="font-size:13px;opacity:0.85;font-weight:700;">家庭总积分</div>
+          <div style="font-family:'Fredoka One',cursive;font-size:42px;line-height:1.1;">3,680</div>
+          <div style="font-size:12px;opacity:0.75;margin-top:4px;">👧 小熊同学 2,480 · 👦 小虎同学 1,200</div>
+        </div>
+
+        <div style="padding-bottom:80px;">
+          <!-- Child 1 -->
+          <div class="child-card">
+            <div class="child-avatar">🐻</div>
+            <div class="child-info">
+              <div class="name">小熊同学</div>
+              <div class="score-small">2,480 <span>⭐ 积分</span></div>
+              <div style="font-size:11px;color:var(--green);margin-top:2px;font-weight:700;">↑ 本周 +380</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+
+          <!-- Child 2 -->
+          <div class="child-card">
+            <div class="child-avatar">🐯</div>
+            <div class="child-info">
+              <div class="name">小虎同学</div>
+              <div class="score-small">1,200 <span>⭐ 积分</span></div>
+              <div style="font-size:11px;color:#FF4D4D;margin-top:2px;font-weight:700;">↓ 本周 -50</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+
+          <!-- Add Child -->
+          <div style="margin:0 16px;border:2.5px dashed #D0D8FF;border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.6);cursor:pointer;">
+            <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#E8ECFF,#D8E4FF);display:flex;align-items:center;justify-content:center;font-size:28px;">➕</div>
+            <div>
+              <div style="font-size:15px;font-weight:800;color:var(--purple);">添加孩子</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px;">输入孩子的登录码关联账户</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item active" style="color:var(--purple);"><div class="nav-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">👧</div>孩子</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛒</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-孩子积分概览</div>
+  </div>
+
+  <!-- Parent: Child Detail -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <div class="btn-icon">←</div>
+          <h2>小熊同学 🐻</h2>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div class="hero-card" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">
+          <div class="hero-deco"></div>
+          <div class="score-label">当前积分</div>
+          <div class="score-num">2,480</div>
+          <div class="score-unit">⭐ 积分</div>
+          <div class="avatar">🐻</div>
+        </div>
+
+        <div class="quick-stats">
+          <div class="stat-box">
+            <div class="val" style="color:var(--green);">+380</div>
+            <div class="lbl">本周获得</div>
+          </div>
+          <div class="stat-box">
+            <div class="val" style="color:#FF4D4D;">-120</div>
+            <div class="lbl">本周花费</div>
+          </div>
+          <div class="stat-box">
+            <div class="val" style="color:var(--purple);">2</div>
+            <div class="lbl">待兑现</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h3>积分记录</h3>
+          <a>查看全部 →</a>
+        </div>
+        <div class="card" style="margin:0 16px 80px;">
+          <div class="record-item">
+            <div class="record-icon" style="background:#E8F8F0;">🎯</div>
+            <div class="record-info">
+              <div class="title">完成数学作业</div>
+              <div class="time">今天 08:30 <span class="tag tag-add">增加</span></div>
+            </div>
+            <div class="record-score plus">+50</div>
+          </div>
+          <div class="record-item">
+            <div class="record-icon" style="background:#FFF0F5;">🎁</div>
+            <div class="record-info">
+              <div class="title">家长赠送</div>
+              <div class="time">昨天 20:00 <span class="tag tag-gift">赠与</span></div>
+            </div>
+            <div class="record-score gift-score">+100</div>
+          </div>
+          <div class="record-item">
+            <div class="record-icon" style="background:#FFECEC;">😅</div>
+            <div class="record-info">
+              <div class="title">忘做家务扣分</div>
+              <div class="time">前天 21:00 <span class="tag tag-minus">减少</span></div>
+            </div>
+            <div class="record-score minus">-20</div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item active" style="color:var(--purple);"><div class="nav-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">👧</div>孩子</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛒</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-孩子详情</div>
+  </div>
+
+  <!-- Parent: Manage Score -->
+  <div>
+    <div class="phone" style="min-height:700px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>增减积分 ⭐</h2>
+        </div>
+
+        <!-- Child Selector -->
+        <div style="margin:4px 16px 12px;background:white;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(0,0,0,0.06);">
+          <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:10px;">选择孩子</div>
+          <div style="display:flex;gap:10px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+              <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#FFE0B0,#FFD0A0);display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid var(--orange);">🐻</div>
+              <div style="font-size:11px;font-weight:800;color:var(--orange);">小熊</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;">
+              <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#D0E8FF,#C0D8FF);display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid #E0E0E0;">🐯</div>
+              <div style="font-size:11px;font-weight:800;color:var(--text2);">小虎</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add/Minus Toggle -->
+        <div class="toggle-row">
+          <div class="toggle-btn add">+ 增加积分</div>
+          <div class="toggle-btn" style="background:#F5F5F5;color:var(--text2);">- 减少积分</div>
+          <div class="toggle-btn" style="background:#F5F5F5;color:var(--text2);">🎁 赠与</div>
+        </div>
+
+        <!-- Score Input -->
+        <div class="score-input-big">
+          <div class="label">增加积分数</div>
+          <div class="num">50</div>
+          <!-- Num pad suggestions -->
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;">
+            <div style="background:#FFF0E8;color:var(--orange);border-radius:10px;padding:6px 14px;font-size:13px;font-weight:800;cursor:pointer;">+10</div>
+            <div style="background:#FFF0E8;color:var(--orange);border-radius:10px;padding:6px 14px;font-size:13px;font-weight:800;cursor:pointer;">+30</div>
+            <div style="background:linear-gradient(135deg,var(--orange),var(--pink));color:white;border-radius:10px;padding:6px 14px;font-size:13px;font-weight:800;cursor:pointer;">+50</div>
+            <div style="background:#FFF0E8;color:var(--orange);border-radius:10px;padding:6px 14px;font-size:13px;font-weight:800;cursor:pointer;">+100</div>
+          </div>
+        </div>
+
+        <!-- Snippet Templates -->
+        <div style="margin:0 16px 12px;background:white;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(0,0,0,0.06);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:800;">积分便签</div>
+            <div style="font-size:12px;color:var(--purple);font-weight:700;cursor:pointer;">+ 添加便签</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;">
+            <div class="snippet"><span>📚 完成作业</span><span class="pts">+30</span></div>
+            <div class="snippet"><span>🧹 打扫房间</span><span class="pts">+20</span></div>
+            <div class="snippet"><span>🏆 考试优秀</span><span class="pts">+100</span></div>
+            <div class="snippet" style="border-color:#FFECEC;"><span>😅 忘做家务</span><span class="pts" style="color:#FF4D4D;">-20</span></div>
+          </div>
+        </div>
+
+        <!-- Reason Input -->
+        <div style="margin:0 16px 16px;background:white;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(0,0,0,0.06);">
+          <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;">增加原因（必填）</div>
+          <div style="border:2px solid #F0F0F0;border-radius:12px;padding:10px;font-size:13px;color:var(--text);min-height:48px;">完成数学作业，表现优秀！</div>
+        </div>
+
+        <div style="margin:0 16px 80px;">
+          <button class="btn-primary" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">确认增加积分</button>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item" style=""><div class="nav-icon" style="font-size:18px;">👧</div>孩子</div>
+          <div class="nav-item active" style="color:var(--purple);"><div class="nav-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛒</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-增减积分</div>
+  </div>
+
+  <!-- Parent: Shop Manage -->
+  <div>
+    <div class="phone" style="min-height:680px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>管理商城 🛒</h2>
+          <div class="btn-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);color:white;font-weight:800;">+</div>
+        </div>
+
+        <div style="padding-bottom:80px;">
+          <!-- Add item hint -->
+          <div style="margin:0 16px 12px;border:2.5px dashed #C0C8F0;border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.6);cursor:pointer;">
+            <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#E8ECFF,#D8E4FF);display:flex;align-items:center;justify-content:center;font-size:24px;">✨</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:var(--purple);">添加新兑换商品</div>
+              <div style="font-size:12px;color:var(--text2);">设置积分价格和可兑换数量</div>
+            </div>
+            <div style="margin-left:auto;color:var(--purple);font-size:20px;">›</div>
+          </div>
+
+          <!-- Items -->
+          <div class="section-head" style="margin-top:4px;">
+            <h3>当前在架商品</h3>
+            <span style="font-size:12px;color:var(--text2);">5 件</span>
+          </div>
+          
+          <div class="shop-item" style="margin:0 16px 10px;position:relative;">
+            <div class="shop-emoji">🧸</div>
+            <div class="shop-info">
+              <div class="name">毛绒玩具熊</div>
+              <div class="score">500 ⭐</div>
+              <div class="stock">库存：3件</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#F0F0F0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;color:var(--text);text-align:center;cursor:pointer;">编辑</div>
+              <div style="background:#FFECEC;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;color:#FF4D4D;text-align:center;cursor:pointer;">删除</div>
+            </div>
+          </div>
+
+          <div class="shop-item" style="margin:0 16px 10px;">
+            <div class="shop-emoji">🎮</div>
+            <div class="shop-info">
+              <div class="name">游戏时间 1h</div>
+              <div class="score">200 ⭐</div>
+              <div class="stock">库存：5件</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#F0F0F0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">编辑</div>
+              <div style="background:#FFECEC;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;color:#FF4D4D;cursor:pointer;">删除</div>
+            </div>
+          </div>
+
+          <div class="shop-item" style="margin:0 16px 10px;opacity:0.6;">
+            <div class="shop-emoji">🍦</div>
+            <div class="shop-info">
+              <div class="name">冰淇淋</div>
+              <div class="score">100 ⭐</div>
+              <div class="stock" style="color:#FF4D4D;">已售罄 · 明天自动删除</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="background:#F0F0F0;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;">补货</div>
+              <div style="background:#FFECEC;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;color:#FF4D4D;cursor:pointer;">删除</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👧</div>孩子</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item active" style="color:var(--purple);"><div class="nav-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">🛒</div>商城</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-商城管理</div>
+  </div>
+
+  <!-- Parent: My -->
+  <div>
+    <div class="phone" style="min-height:720px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <h2>我的 👤</h2>
+        </div>
+
+        <!-- Profile -->
+        <div style="margin:0 16px 14px;background:linear-gradient(135deg,#7B5EA7,#4CC9F0);border-radius:24px;padding:20px;color:white;display:flex;align-items:center;gap:16px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:34px;border:3px solid rgba(255,255,255,0.4);">👨‍👩‍👧</div>
+          <div>
+            <div style="font-size:18px;font-weight:800;">快乐一家人</div>
+            <div style="font-size:12px;opacity:0.85;margin-top:2px;">登录码：XY1234 · 2个孩子</div>
+          </div>
+        </div>
+
+        <!-- Pending -->
+        <div class="section-head">
+          <h3>待兑现列表</h3>
+          <span style="background:var(--purple);color:white;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:800;">3 件</span>
+        </div>
+        <div class="pending-item">
+          <div class="pending-emoji">🧸</div>
+          <div class="pending-info">
+            <div class="title">毛绒玩具熊 <span style="font-size:11px;color:var(--text2);">· 🐻小熊</span></div>
+            <div class="sub">兑换于 2月20日 · 500 ⭐</div>
+          </div>
+          <button class="btn-redeem">兑现</button>
+        </div>
+        <div class="pending-item">
+          <div class="pending-emoji">🎮</div>
+          <div class="pending-info">
+            <div class="title">游戏时间 1h <span style="font-size:11px;color:var(--text2);">· 🐻小熊</span></div>
+            <div class="sub">兑换于 2月18日 · 200 ⭐</div>
+          </div>
+          <button class="btn-redeem">兑现</button>
+        </div>
+        <div class="pending-item">
+          <div class="pending-emoji">🍕</div>
+          <div class="pending-info">
+            <div class="title">披萨一份 <span style="font-size:11px;color:var(--text2);">· 🐯小虎</span></div>
+            <div class="sub">兑换于 2月17日 · 300 ⭐</div>
+          </div>
+          <button class="btn-redeem">兑现</button>
+        </div>
+
+        <!-- Exchange Records -->
+        <div class="section-head" style="margin-top:8px;">
+          <h3>兑换记录</h3>
+          <a>全部 →</a>
+        </div>
+        <div class="card" style="margin:0 16px 80px;">
+          <div class="record-item">
+            <div class="record-icon" style="background:#E8F8F0;">✅</div>
+            <div class="record-info">
+              <div class="title">冰淇淋 · 🐻小熊</div>
+              <div class="time">2月10日 · 已兑现</div>
+            </div>
+            <div class="record-score minus">-100</div>
+          </div>
+          <div class="record-item">
+            <div class="record-icon" style="background:#E8F8F0;">✅</div>
+            <div class="record-info">
+              <div class="title">看电影 · 🐯小虎</div>
+              <div class="time">2月8日 · 已兑现</div>
+            </div>
+            <div class="record-score minus">-400</div>
+          </div>
+        </div>
+
+        <div class="nav-bar">
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">👧</div>孩子</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">⭐</div>积分</div>
+          <div class="nav-item"><div class="nav-icon" style="font-size:18px;">🛒</div>商城</div>
+          <div class="nav-item active" style="color:var(--purple);"><div class="nav-icon" style="background:linear-gradient(135deg,#7B5EA7,#4CC9F0);">👤</div>我的</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-我的</div>
+  </div>
+
+  <!-- Parent: Face Login Photos -->
+  <div>
+    <div class="phone" style="min-height:720px;">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" style="background:#F0F5FF;">
+        <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+        <div class="header-bar">
+          <div class="btn-icon">←</div>
+          <h2>人脸登录记录 📷</h2>
+          <div style="width:36px;"></div>
+        </div>
+
+        <div style="padding:0 16px;font-size:12px;color:var(--text2);font-weight:700;margin-bottom:12px;">每个孩子最多保留 7 张登录照片</div>
+
+        <!-- Child 1 Photos -->
+        <div class="card" style="margin:0 16px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FFE0B0,#FFD0A0);display:flex;align-items:center;justify-content:center;font-size:20px;">🐻</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;">小熊同学</div>
+              <div style="font-size:11px;color:var(--text2);">最近 7 次登录</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div class="face-photo">
+              <div class="photo-box">😊</div>
+              <div class="photo-time">02-22 09:41</div>
+            </div>
+            <div class="face-photo">
+              <div class="photo-box">😄</div>
+              <div class="photo-time">02-21 15:20</div>
+            </div>
+            <div class="face-photo">
+              <div class="photo-box">🙂</div>
+              <div class="photo-time">02-20 08:55</div>
+            </div>
+            <div class="face-photo">
+              <div class="photo-box">😊</div>
+              <div class="photo-time">02-19 16:30</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Child 2 Photos -->
+        <div class="card" style="margin:0 16px 12px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#D0E8FF,#C0D8FF);display:flex;align-items:center;justify-content:center;font-size:20px;">🐯</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;">小虎同学</div>
+              <div style="font-size:11px;color:var(--text2);">最近 7 次登录</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div class="face-photo">
+              <div class="photo-box">😎</div>
+              <div class="photo-time">02-22 07:50</div>
+            </div>
+            <div class="face-photo">
+              <div class="photo-box">😁</div>
+              <div class="photo-time">02-20 18:00</div>
+            </div>
+            <div class="face-photo">
+              <div class="photo-box">😊</div>
+              <div class="photo-time">02-18 09:10</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin:0 16px;padding:12px;background:#FFF5E0;border-radius:14px;font-size:12px;color:var(--orange);font-weight:700;text-align:center;">
+          🔄 超出 7 张时自动滚动删除最早记录
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">家长-人脸登录照片</div>
+  </div>
+
+</div>
+
+<div class="sep"></div>
+
+<!-- ======================== FOOTER ======================== -->
+<div style="text-align:center;padding:40px 20px;color:var(--text2);font-size:13px;font-weight:700;">
+  <div style="font-family:'Fredoka One',cursive;font-size:24px;background:linear-gradient(135deg,var(--orange),var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">
+    🌟 Baby-Fans 宝贝积分管理系统
+  </div>
+  <div>共 13 个页面设计 · 孩子端 5 屏 · 家长端 6 屏 · 登录模块 2 屏</div>
+  <div style="margin-top:6px;opacity:0.7;">Design for WeChat Mini Program & Mobile App</div>
+</div>
+
+</body>
+</html>
