@@ -1,0 +1,243 @@
+<template>
+  <view class="container">
+    <!-- Hero Section: Previous Style Points Card -->
+    <view class="hero-card">
+      <view class="bg-circle top-right"></view>
+      <view class="bg-circle bottom-left"></view>
+
+      <view class="user-header">
+        <image class="avatar" :src="userInfo.avatar_url || '/static/logo.png'" mode="aspectFill" />
+        <view class="user-main">
+          <text class="nickname fredoka">{{ userInfo.nickname || 'Baby User' }}</text>
+          <view class="role-badge">{{ userInfo.role === 'parent' ? '家长管理端' : '宝贝端' }}</view>
+        </view>
+      </view>
+
+      <view class="points-display">
+        <text class="label">当前积分余额</text>
+        <view class="amount-row">
+          <text class="amount fredoka">{{ userInfo.points || 0 }}</text>
+          <text class="unit">⭐</text>
+        </view>
+      </view>
+
+      <text class="moto">加油！继续努力挣积分吧！</text>
+      <text class="decoration">🐻</text>
+    </view>
+
+    <!-- Menu Section: Card Style -->
+    <view class="menu-group">
+      <view class="card menu-item" @click="goToRecords">
+        <view class="menu-left">
+          <view class="icon-box" style="background: #FFF9C4;">🎁</view>
+          <text class="label">我的兑换记录</text>
+        </view>
+        <text class="arrow">➔</text>
+      </view>
+
+      <view class="card menu-item" v-if="userInfo.role === 'parent'" @click="showBindCode">
+        <view class="menu-left">
+          <view class="icon-box" style="background: #E1F5FE;">🔗</view>
+          <text class="label">获取邀请绑定码</text>
+        </view>
+        <text class="arrow">➔</text>
+      </view>
+
+      <view class="card menu-item" v-if="userInfo.role === 'child'" @click="showBindInput">
+        <view class="menu-left">
+          <view class="icon-box" style="background: #F3E5F5;">➕</view>
+          <text class="label">绑定我的家长</text>
+        </view>
+        <text class="arrow">➔</text>
+      </view>
+    </view>
+
+    <!-- Logout -->
+    <view class="action-area">
+      <button class="logout-btn" @click="handleLogout">退出登录 🚪</button>
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { request } from '../../utils/request';
+
+const userInfo = ref<any>({});
+const isLoggedIn = ref(false);
+
+const loadData = () => {
+  const token = uni.getStorageSync('token');
+  if (token) {
+    isLoggedIn.value = true;
+    const storedUser = uni.getStorageSync('userInfo');
+    if (storedUser) {
+      userInfo.value = JSON.parse(storedUser);
+    }
+  }
+};
+
+onMounted(loadData);
+
+const handleLogout = () => {
+  uni.showModal({
+    title: '退出确认',
+    content: '确定要离开吗？',
+    cancelText: '点错了',
+    confirmText: '确定',
+    confirmColor: '#FF6B35',
+    success: (res) => {
+      if (res.confirm) {
+        uni.clearStorageSync();
+        uni.reLaunch({ url: '/pages/index/index' });
+      }
+    }
+  });
+};
+
+const goToRecords = () => uni.navigateTo({ url: '/pages/records/records' });
+
+const showBindCode = async () => {
+  try {
+    const res = await request({ url: '/parent/binding/code', method: 'POST' });
+    uni.showModal({
+      title: '专属绑定码',
+      content: res.bind_code,
+      showCancel: false,
+      confirmText: '复制去发送'
+    });
+  } catch (e) {
+    uni.showToast({ title: '获取失败', icon: 'none' });
+  }
+};
+
+const showBindInput = () => {
+  uni.showModal({
+    title: '输入绑定码',
+    editable: true,
+    placeholderText: '输入家长提供的6位代码',
+    success: async (res) => {
+      if (res.confirm && res.content) {
+        try {
+          await request({
+            url: '/child/binding/accept',
+            method: 'POST',
+            data: { bind_code: res.content }
+          });
+          uni.showToast({ title: '绑定成功！', icon: 'success' });
+        } catch (e) {
+          uni.showToast({ title: '验证失败', icon: 'none' });
+        }
+      }
+    }
+  });
+};
+</script>
+
+<style lang="scss" scoped>
+.container {
+  padding-bottom: 40rpx;
+}
+
+.hero-card {
+  margin: 30rpx 32rpx 40rpx;
+  border-radius: 48rpx;
+  padding: 40rpx;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+  box-shadow: 0 20rpx 50rpx rgba(255, 107, 53, 0.3);
+
+  .bg-circle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    &.top-right { width: 200rpx; height: 200rpx; top: -40rpx; right: -40rpx; }
+    &.bottom-left { width: 120rpx; height: 120rpx; bottom: 20rpx; left: -20rpx; opacity: 0.1; }
+  }
+
+  .user-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40rpx;
+    position: relative;
+    z-index: 1;
+
+    .avatar {
+      width: 100rpx;
+      height: 100rpx;
+      border-radius: 50%;
+      border: 4rpx solid rgba(255,255,255,0.4);
+      margin-right: 20rpx;
+    }
+
+    .nickname {
+      font-size: 36rpx;
+      display: block;
+    }
+
+    .role-badge {
+      font-size: 20rpx;
+      background: rgba(255,255,255,0.2);
+      padding: 4rpx 16rpx;
+      border-radius: 20rpx;
+      margin-top: 4rpx;
+    }
+  }
+
+  .points-display {
+    position: relative;
+    z-index: 1;
+    .label { font-size: 26rpx; opacity: 0.9; font-weight: 800; }
+    .amount-row {
+      display: flex;
+      align-items: baseline;
+      gap: 16rpx;
+      margin: 10rpx 0;
+      .amount { font-size: 100rpx; line-height: 1; }
+      .unit { font-size: 32rpx; opacity: 0.9; }
+    }
+  }
+
+  .moto { font-size: 28rpx; font-weight: 700; opacity: 0.9; position: relative; z-index: 1; }
+  .decoration { position: absolute; right: 40rpx; bottom: 40rpx; font-size: 96rpx; opacity: 0.8; }
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 30rpx;
+  margin-bottom: 24rpx;
+
+  .menu-left {
+    display: flex;
+    align-items: center;
+    .icon-box {
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 24rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40rpx;
+      margin-right: 24rpx;
+    }
+    .label { font-size: 30rpx; font-weight: 800; color: var(--text); }
+  }
+  .arrow { color: #DDD; font-weight: 900; }
+}
+
+.action-area {
+  padding: 40rpx 32rpx;
+  .logout-btn {
+    background: #F5F5F5;
+    color: #888;
+    border-radius: 24rpx;
+    font-weight: 800;
+    font-size: 28rpx;
+    &::after { border: none; }
+  }
+}
+</style>

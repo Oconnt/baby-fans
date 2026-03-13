@@ -48,6 +48,7 @@ func SetupRouter() *gin.Engine {
 	// Public routes
 	r.POST("/login/face", authHandler.LoginFace)
 	r.GET("/login/code", authHandler.LoginCode)
+	r.POST("/api/v1/auth/wechat/login", authHandler.WeChatLogin)
 
 	// Global / Shop access for both
 	r.GET("/parent/items", shopHandler.GetItems)
@@ -57,11 +58,13 @@ func SetupRouter() *gin.Engine {
 	parent.Use(middleware.AuthMiddleware(model.RoleParent))
 	{
 		parent.GET("/children", authHandler.GetChildren)
+		parent.POST("/binding/code", authHandler.GenerateBindingCode)
 		parent.GET("/templates", pointsHandler.GetTemplates)
 		parent.POST("/templates", pointsHandler.SaveTemplate)
 		parent.DELETE("/templates/:id", pointsHandler.DeleteTemplate)
 		parent.POST("/items", shopHandler.SaveItem)
 		parent.DELETE("/items/:id", shopHandler.DeleteItem)
+		parent.GET("/redemptions", shopHandler.GetRedemptions)
 		parent.POST("/points/manage", pointsHandler.ManagePoints)
 		parent.POST("/redemption/confirm/:id", shopHandler.Confirm)
 	}
@@ -71,6 +74,7 @@ func SetupRouter() *gin.Engine {
 	child.Use(middleware.AuthMiddleware(model.RoleChild))
 	{
 		child.GET("/overview", authHandler.GetOverview)
+		child.POST("/binding/accept", authHandler.AcceptBinding)
 		child.POST("/exchange", shopHandler.Exchange)
 	}
 

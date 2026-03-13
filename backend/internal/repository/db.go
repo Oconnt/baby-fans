@@ -31,6 +31,7 @@ func InitDB() {
 	// 自动迁移
 	DB.AutoMigrate(
 		&model.User{},
+		&model.UserBinding{},
 		&model.PointsRecord{},
 		&model.ShopItem{},
 		&model.Redemption{},

@@ -221,3 +221,9 @@ func (h *ShopHandler) Confirm(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "redemption confirmed"})
 }
+
+func (h *ShopHandler) GetRedemptions(c *gin.Context) {
+	var redemptions []model.Redemption
+	repository.DB.Preload("User").Preload("Item").Order("created_at desc").Find(&redemptions)
+	c.JSON(http.StatusOK, redemptions)
+}

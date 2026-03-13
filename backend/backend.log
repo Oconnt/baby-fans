@@ -1,0 +1,50 @@
+2026/03/13 18:34:21 Config loaded successfully
+2026/03/13 18:34:21 MySQL 连接失败，正在使用 SQLite 作为备选存储...
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /storage/uploads/*filepath --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /storage/uploads/*filepath --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] HEAD   /uploads/*filepath        --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (4 handlers)
+[GIN-debug] GET    /                         --> baby-fans/internal/api.SetupRouter.(*RouterGroup).StaticFile.func2 (4 handlers)
+[GIN-debug] HEAD   /                         --> baby-fans/internal/api.SetupRouter.(*RouterGroup).StaticFile.func2 (4 handlers)
+[GIN-debug] POST   /login/face               --> baby-fans/internal/api/handler.(*AuthHandler).LoginFace-fm (4 handlers)
+[GIN-debug] GET    /login/code               --> baby-fans/internal/api/handler.(*AuthHandler).LoginCode-fm (4 handlers)
+[GIN-debug] POST   /api/v1/auth/wechat/login --> baby-fans/internal/api/handler.(*AuthHandler).WeChatLogin-fm (4 handlers)
+[GIN-debug] GET    /parent/items             --> baby-fans/internal/api/handler.(*ShopHandler).GetItems-fm (4 handlers)
+[GIN-debug] GET    /parent/children          --> baby-fans/internal/api/handler.(*AuthHandler).GetChildren-fm (5 handlers)
+[GIN-debug] POST   /parent/binding/code      --> baby-fans/internal/api/handler.(*AuthHandler).GenerateBindingCode-fm (5 handlers)
+[GIN-debug] GET    /parent/templates         --> baby-fans/internal/api/handler.(*PointsHandler).GetTemplates-fm (5 handlers)
+[GIN-debug] POST   /parent/templates         --> baby-fans/internal/api/handler.(*PointsHandler).SaveTemplate-fm (5 handlers)
+[GIN-debug] DELETE /parent/templates/:id     --> baby-fans/internal/api/handler.(*PointsHandler).DeleteTemplate-fm (5 handlers)
+[GIN-debug] POST   /parent/items             --> baby-fans/internal/api/handler.(*ShopHandler).SaveItem-fm (5 handlers)
+[GIN-debug] DELETE /parent/items/:id         --> baby-fans/internal/api/handler.(*ShopHandler).DeleteItem-fm (5 handlers)
+[GIN-debug] GET    /parent/redemptions       --> baby-fans/internal/api/handler.(*ShopHandler).GetRedemptions-fm (5 handlers)
+[GIN-debug] POST   /parent/points/manage     --> baby-fans/internal/api/handler.(*PointsHandler).ManagePoints-fm (5 handlers)
+[GIN-debug] POST   /parent/redemption/confirm/:id --> baby-fans/internal/api/handler.(*ShopHandler).Confirm-fm (5 handlers)
+[GIN-debug] GET    /child/overview           --> baby-fans/internal/api/handler.(*AuthHandler).GetOverview-fm (5 handlers)
+[GIN-debug] POST   /child/binding/accept     --> baby-fans/internal/api/handler.(*AuthHandler).AcceptBinding-fm (5 handlers)
+[GIN-debug] POST   /child/exchange           --> baby-fans/internal/api/handler.(*ShopHandler).Exchange-fm (5 handlers)
+2026/03/13 18:34:21 Starting server on port 18081
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://github.com/gin-gonic/gin/blob/master/docs/doc.md#dont-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :18081
+[GIN] 2026/03/13 - 18:34:22 | 204 |     291.083µs |             ::1 | OPTIONS  "/parent/children"
+[GIN] 2026/03/13 - 18:34:22 | 200 |     308.334µs |             ::1 | GET      "/parent/children"
+[GIN] 2026/03/13 - 18:34:27 | 204 |      12.417µs |             ::1 | OPTIONS  "/login/code?code=888888"
+[GIN] 2026/03/13 - 18:34:27 | 200 |    1.235042ms |             ::1 | GET      "/login/code?code=888888"
+[GIN] 2026/03/13 - 18:34:28 | 204 |       6.959µs |             ::1 | OPTIONS  "/parent/children"
+[GIN] 2026/03/13 - 18:34:28 | 200 |     413.542µs |             ::1 | GET      "/parent/children"
+[GIN] 2026/03/13 - 18:34:32 | 200 |     615.584µs |             ::1 | GET      "/parent/children"
+[GIN] 2026/03/13 - 18:34:45 | 204 |       6.208µs |             ::1 | OPTIONS  "/parent/templates"
+[GIN] 2026/03/13 - 18:34:45 | 200 |     257.959µs |             ::1 | GET      "/parent/templates"
+[GIN] 2026/03/13 - 18:34:48 | 204 |       6.625µs |             ::1 | OPTIONS  "/parent/items"
+[GIN] 2026/03/13 - 18:34:48 | 200 |     494.917µs |             ::1 | GET      "/parent/items"
+[GIN] 2026/03/13 - 18:35:05 | 204 |      39.209µs |             ::1 | OPTIONS  "/parent/binding/code"
+[GIN] 2026/03/13 - 18:35:05 | 200 |    1.982125ms |             ::1 | POST     "/parent/binding/code"
+[GIN] 2026/03/13 - 18:35:15 | 204 |       5.542µs |             ::1 | OPTIONS  "/parent/redemptions"
+[GIN] 2026/03/13 - 18:35:15 | 200 |     725.334µs |             ::1 | GET      "/parent/redemptions"

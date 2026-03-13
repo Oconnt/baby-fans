@@ -19,9 +19,26 @@ type User struct {
 	Role      Role           `gorm:"not null" json:"role"`
 	LoginCode string         `json:"login_code"`
 	Points    int            `gorm:"default:0" json:"points"`
+	OpenID    string         `gorm:"index" json:"openid"`
+	UnionID   string         `gorm:"index" json:"unionid"`
+	Nickname  string         `json:"nickname"`
+	AvatarURL string         `json:"avatar_url"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type UserBinding struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	ParentID  uint      `gorm:"index" json:"parent_id"`
+	ChildID   uint      `gorm:"index" json:"child_id"`
+	BindCode  string    `gorm:"uniqueIndex" json:"bind_code"`
+	Status    string    `gorm:"default:'pending'" json:"status"` // pending, accepted
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Parent User `gorm:"foreignKey:ParentID" json:"parent"`
+	Child  User `gorm:"foreignKey:ChildID" json:"child"`
 }
 
 type ParentChild struct {
