@@ -1,11 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
-	"path/filepath"
 	"strconv"
-	"time"
 
 	"baby-fans/internal/model"
 	"baby-fans/internal/repository"
@@ -87,10 +84,59 @@ func (h *AuthHandler) GetOverview(c *gin.Context) {
 }
 
 func (h *AuthHandler) GetChildren(c *gin.Context) {
+	parentID := c.MustGet("userID").(uint)
+	var bindings []model.ParentChild
+	repository.DB.Where("parent_id = ?", parentID).Find(&bindings)
+
 	var children []model.User
-	// 简单演示：查询所有 child 角色
-	repository.DB.Where("role = ?", model.RoleChild).Find(&children)
+	if len(bindings) > 0 {
+		childIDs := make([]uint, len(bindings))
+		for i, b := range bindings {
+			childIDs[i] = b.ChildID
+		}
+		repository.DB.Where("id IN ?", childIDs).Find(&children)
+	}
 	c.JSON(http.StatusOK, children)
+}
+
+func (h *AuthHandler) BindChildByCode(c *gin.Context) {
+	parentID := c.MustGet("userID").(uint)
+	var input struct {
+		LoginCode string `json:"login_code"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var child model.User
+	if err := repository.DB.Where("login_code = ? AND role = ?", input.LoginCode, model.RoleChild).First(&child).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "未找到该登录码对应的孩子"})
+		return
+	}
+
+	var existing model.ParentChild
+	if err := repository.DB.Where("parent_id = ? AND child_id = ?", parentID, child.ID).First(&existing).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "已绑定该孩子"})
+		return
+	}
+
+	binding := model.ParentChild{ParentID: parentID, ChildID: child.ID}
+	repository.DB.Create(&binding)
+	c.JSON(http.StatusOK, gin.H{"message": "绑定成功", "child": child})
+}
+
+func (h *AuthHandler) UnbindChild(c *gin.Context) {
+	parentID := c.MustGet("userID").(uint)
+	childIDStr := c.Param("id")
+	childID, _ := strconv.ParseUint(childIDStr, 10, 32)
+
+	result := repository.DB.Where("parent_id = ? AND child_id = ?", parentID, uint(childID)).Delete(&model.ParentChild{})
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "未找到绑定关系"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "解绑成功"})
 }
 
 func (h *AuthHandler) GetFaceLogs(c *gin.Context) {
@@ -159,32 +205,49 @@ func (h *ShopHandler) GetItems(c *gin.Context) {
 }
 
 func (h *ShopHandler) SaveItem(c *gin.Context) {
-	name := c.PostForm("name")
-	price, _ := strconv.Atoi(c.PostForm("price"))
-	stock, _ := strconv.Atoi(c.PostForm("stock"))
-	description := c.PostForm("description")
-	idStr := c.PostForm("id")
+	var input struct {
+		ID    uint   `json:"id"`
+		Name  string `json:"name"`
+		Price int    `json:"price"`
+		Stock int    `json:"stock"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	var item model.ShopItem
-	if idStr != "" {
-		id, _ := strconv.ParseUint(idStr, 10, 32)
-		repository.DB.First(&item, uint(id))
+	if input.ID > 0 {
+		repository.DB.First(&item, input.ID)
 	}
 
-	item.Name = name
-	item.Price = price
-	item.Stock = stock
-	item.Description = description
+	item.Name = input.Name
+	item.Price = input.Price
+	item.Stock = input.Stock
 
-	file, err := c.FormFile("image")
-	if err == nil {
-		filename := fmt.Sprintf("item_%d_%s", time.Now().Unix(), file.Filename)
-		dst := filepath.Join("uploads", filename)
-		if err := c.SaveUploadedFile(file, dst); err == nil {
-			item.ImagePath = "/uploads/" + filename
-		}
+	repository.DB.Save(&item)
+	c.JSON(http.StatusOK, item)
+}
+
+func (h *ShopHandler) UpdateStock(c *gin.Context) {
+	idStr := c.Param("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+
+	var input struct {
+		Stock int `json:"stock"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
+	var item model.ShopItem
+	if err := repository.DB.First(&item, uint(id)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "商品不存在"})
+		return
+	}
+
+	item.Stock = input.Stock
 	repository.DB.Save(&item)
 	c.JSON(http.StatusOK, item)
 }
@@ -196,11 +259,16 @@ func (h *ShopHandler) DeleteItem(c *gin.Context) {
 }
 
 func (h *ShopHandler) Exchange(c *gin.Context) {
-	itemIDStr := c.Param("id")
-	itemID, _ := strconv.ParseUint(itemIDStr, 10, 32)
+	var input struct {
+		ItemID uint `json:"item_id"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	userID := c.MustGet("userID").(uint)
 
-	err := h.Service.ExchangeItem(userID, uint(itemID))
+	err := h.Service.ExchangeItem(userID, input.ItemID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

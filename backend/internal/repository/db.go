@@ -32,6 +32,7 @@ func InitDB() {
 	DB.AutoMigrate(
 		&model.User{},
 		&model.UserBinding{},
+		&model.ParentChild{},
 		&model.PointsRecord{},
 		&model.ShopItem{},
 		&model.Redemption{},
