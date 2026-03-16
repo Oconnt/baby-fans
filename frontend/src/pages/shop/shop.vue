@@ -267,6 +267,7 @@ onMounted(loadData);
   .input-box {
     background: #f8f9fa; border: 1px solid #eee; border-radius: 16rpx; padding: 20rpx;
     margin-bottom: 24rpx; font-size: 28rpx; width: 100%; box-sizing: border-box;
+    color: #333;
   }
   .modal-actions {
     display: flex; gap: 20rpx; margin-top: 20rpx;
