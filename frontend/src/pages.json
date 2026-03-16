@@ -29,7 +29,7 @@
 		{
 			"path": "pages/points/points",
 			"style": {
-				"navigationBarTitleText": "积分配置"
+				"navigationBarTitleText": "标签管理"
 			}
 		},
 		{
@@ -60,7 +60,7 @@
 			},
 			{
 				"pagePath": "pages/points/points",
-				"text": "积分配置",
+				"text": "标签管理",
 				"iconPath": "static/logo.png",
 				"selectedIconPath": "static/logo.png"
 			},
