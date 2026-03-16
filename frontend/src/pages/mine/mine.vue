@@ -13,7 +13,7 @@
         </view>
       </view>
 
-      <view class="points-display">
+      <view class="points-display" v-if="userInfo.role !== 'parent'">
         <text class="label">当前积分余额</text>
         <view class="amount-row">
           <text class="amount fredoka">{{ userInfo.points || 0 }}</text>
@@ -21,8 +21,8 @@
         </view>
       </view>
 
-      <text class="moto">加油！继续努力挣积分吧！</text>
-      <text class="decoration">🐻</text>
+      <text class="moto" v-if="userInfo.role !== 'parent'">加油！继续努力挣积分吧！</text>
+      <text class="decoration" v-if="userInfo.role !== 'parent'">🐻</text>
     </view>
 
     <!-- Menu Section: Card Style -->
@@ -31,6 +31,14 @@
         <view class="menu-left">
           <view class="icon-box" style="background: #FFF9C4;">🎁</view>
           <text class="label">我的兑换记录</text>
+        </view>
+        <text class="arrow">➔</text>
+      </view>
+
+      <view class="card menu-item" v-if="userInfo.role === 'parent'" @click="goToPointsRecords">
+        <view class="menu-left">
+          <view class="icon-box" style="background: #E0F2F1;">📝</view>
+          <text class="label">积分派发记录</text>
         </view>
         <text class="arrow">➔</text>
       </view>
@@ -96,6 +104,8 @@ const handleLogout = () => {
 };
 
 const goToRecords = () => uni.navigateTo({ url: '/pages/records/records' });
+
+const goToPointsRecords = () => uni.navigateTo({ url: '/pages/points-records/points-records' });
 
 const showBindCode = async () => {
   try {

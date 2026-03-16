@@ -16,6 +16,7 @@
         <view v-for="item in items" :key="item.id" class="card item-card">
           <view class="details">
             <text class="name">{{ item.name }}</text>
+            <text class="desc" v-if="item.description">{{ item.description }}</text>
             <text class="price">{{ item.price }} ⭐ | 库存: {{ item.stock }}</text>
           </view>
           <view class="actions">
@@ -36,6 +37,7 @@
       <view class="item-grid">
         <view v-for="item in items" :key="item.id" class="card product-card">
           <text class="product-name">{{ item.name }}</text>
+          <text class="product-desc" v-if="item.description">{{ item.description }}</text>
           <view class="price-row">
             <text class="price">{{ item.price }}</text>
             <text class="unit">⭐</text>
@@ -50,6 +52,7 @@
       <view class="modal-content card" @click.stop>
         <text class="modal-title">上架新商品</text>
         <input class="input-box" v-model="newItem.name" placeholder="商品名称" />
+        <input class="input-box" v-model="newItem.description" placeholder="商品描述" />
         <input class="input-box" type="number" v-model.number="newItem.price" placeholder="所需积分" />
         <input class="input-box" type="number" v-model.number="newItem.stock" placeholder="初始库存" />
         <view class="modal-actions">
@@ -68,7 +71,7 @@ import { request } from '../../utils/request';
 const userRole = ref('');
 const items = ref<any[]>([]);
 const showAddItem = ref(false);
-const newItem = ref({ name: '', price: 0, stock: 10 });
+const newItem = ref({ name: '', description: '', price: 0, stock: 10 });
 
 const loadData = async () => {
   const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
@@ -82,7 +85,7 @@ const loadData = async () => {
 };
 
 const openAddModal = () => {
-  newItem.value = { name: '', price: 0, stock: 10 };
+  newItem.value = { name: '', description: '', price: 0, stock: 10 };
   showAddItem.value = true;
 };
 
@@ -209,6 +212,7 @@ onMounted(loadData);
   .details {
     flex: 1;
     .name { font-size: 30rpx; font-weight: bold; color: #333; display: block; }
+    .desc { font-size: 24rpx; color: #666; margin-top: 4rpx; display: block; }
     .price { font-size: 24rpx; color: #888; margin-top: 8rpx; display: block; }
   }
   .actions {
@@ -230,7 +234,8 @@ onMounted(loadData);
   display: flex;
   flex-direction: column;
   align-items: center;
-  .product-name { font-size: 28rpx; font-weight: bold; margin-bottom: 12rpx; }
+  .product-name { font-size: 28rpx; font-weight: bold; margin-bottom: 8rpx; }
+  .product-desc { font-size: 22rpx; color: #999; margin-bottom: 12rpx; text-align: center; height: 60rpx; overflow: hidden; }
   .price-row {
     display: flex; align-items: baseline; gap: 4rpx; margin-bottom: 20rpx;
     .price { font-size: 36rpx; font-weight: 900; color: #FF6B35; }

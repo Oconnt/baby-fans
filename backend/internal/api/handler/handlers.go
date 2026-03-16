@@ -194,6 +194,32 @@ func (h *PointsHandler) ManagePoints(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "points updated"})
 }
 
+func (h *PointsHandler) GetPointsRecords(c *gin.Context) {
+	parentID := c.MustGet("userID").(uint)
+
+	// Get children IDs
+	var bindings []model.ParentChild
+	repository.DB.Where("parent_id = ?", parentID).Find(&bindings)
+	childIDs := make([]uint, 0)
+	for _, b := range bindings {
+		childIDs = append(childIDs, b.ChildID)
+	}
+
+	if len(childIDs) == 0 {
+		c.JSON(http.StatusOK, []model.PointsRecord{})
+		return
+	}
+
+	var records []model.PointsRecord
+	// Find records where UserID is in children AND OperatorID is the parent
+	repository.DB.Where("user_id IN ? AND operator_id = ?", childIDs, parentID).
+		Preload("User"). // Load the child user details
+		Order("created_at desc").
+		Find(&records)
+
+	c.JSON(http.StatusOK, records)
+}
+
 type ShopHandler struct {
 	Service *service.ShopService
 }
@@ -206,10 +232,11 @@ func (h *ShopHandler) GetItems(c *gin.Context) {
 
 func (h *ShopHandler) SaveItem(c *gin.Context) {
 	var input struct {
-		ID    uint   `json:"id"`
-		Name  string `json:"name"`
-		Price int    `json:"price"`
-		Stock int    `json:"stock"`
+		ID          uint   `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Price       int    `json:"price"`
+		Stock       int    `json:"stock"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -222,6 +249,7 @@ func (h *ShopHandler) SaveItem(c *gin.Context) {
 	}
 
 	item.Name = input.Name
+	item.Description = input.Description
 	item.Price = input.Price
 	item.Stock = input.Stock
 

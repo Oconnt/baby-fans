@@ -69,6 +69,7 @@ func SetupRouter() *gin.Engine {
 		parent.DELETE("/items/:id", shopHandler.DeleteItem)
 		parent.GET("/redemptions", shopHandler.GetRedemptions)
 		parent.POST("/points/manage", pointsHandler.ManagePoints)
+		parent.GET("/points/records", pointsHandler.GetPointsRecords)
 		parent.POST("/redemption/confirm/:id", shopHandler.Confirm)
 	}
 
