@@ -52,6 +52,7 @@ type PointsRecord struct {
 	Amount     int       `json:"amount"`
 	Reason     string    `json:"reason"`
 	OperatorID uint      `json:"operator_id"` // The parent who added/subtracted points
+	Operator   User      `gorm:"foreignKey:OperatorID" json:"operator"`
 	CreatedAt  time.Time `json:"created_at"`
 }
 

@@ -1,46 +1,62 @@
 <template>
   <view class="container">
-    <view class="header card">
-      <text class="title">标签管理</text>
-      <text class="subtitle">管理积分任务标签</text>
+
+    <!-- Parent View: Tag Management -->
+    <view v-if="userRole === 'parent'">
+      <!-- Usage Guide -->
+      <view class="usage-guide card">
+        <text class="guide-title">💡 使用说明</text>
+        <text class="guide-item">1. 在此创建常用任务标签（如：写完作业 +10）。</text>
+        <text class="guide-item">2. 创建后在"首页"点击"管理"即可快速使用。</text>
+      </view>
+
+      <!-- Template List -->
+      <view class="template-list">
+        <view v-for="item in templates" :key="item.id" class="template-card card">
+          <text class="delete-icon" @click="handleDelete(item.id)">✕</text>
+          <text class="template-title">{{ item.title }}</text>
+          <text class="template-content">{{ item.content }}</text>
+          <text class="template-amount" :class="item.amount >= 0 ? 'plus' : 'minus'">
+            {{ item.amount >= 0 ? '+' : '' }}{{ item.amount }}
+          </text>
+        </view>
+
+        <!-- Add New Card -->
+        <view class="template-card card add-card" @click="showAddModal = true">
+          <text class="add-icon">+</text>
+          <text class="add-text">新增标签</text>
+        </view>
+      </view>
+
+      <!-- Add Template Modal -->
+      <view v-if="showAddModal" class="modal-mask" @click="showAddModal = false">
+        <view class="modal-content card" @click.stop>
+          <text class="modal-title">新建标签</text>
+          <input class="input-box" v-model="newTemplate.title" placeholder="标签名称" />
+          <input class="input-box" v-model="newTemplate.content" placeholder="标签描述" />
+          <input class="input-box" type="number" v-model.number="newTemplate.amount" placeholder="积分分值 (例如 10 或 -5)" />
+          <view class="modal-actions">
+            <view class="btn-cancel" @click="showAddModal = false">取消</view>
+            <view class="btn-submit" @click="saveTemplate">保存</view>
+          </view>
+        </view>
+      </view>
     </view>
 
-    <!-- Usage Guide -->
-    <view class="usage-guide card">
-      <text class="guide-title">💡 使用说明</text>
-      <text class="guide-item">1. 在此创建常用任务标签（如：写完作业 +10）。</text>
-      <text class="guide-item">2. 创建后在“孩子管理”点击“管理”即可快速使用。</text>
-    </view>
-
-    <!-- Template List -->
-    <view class="template-list">
-      <view v-for="item in templates" :key="item.id" class="template-card card">
-        <text class="delete-icon" @click="handleDelete(item.id)">✕</text>
-        <text class="template-title">{{ item.title }}</text>
-        <text class="template-content">{{ item.content }}</text>
-        <text class="template-amount" :class="item.amount >= 0 ? 'plus' : 'minus'">
+    <!-- Child View: Points History -->
+    <view v-if="userRole === 'child'" class="history-view">
+      <view v-for="item in records" :key="item.id" class="record-item card">
+        <view class="record-info">
+          <text class="reason">{{ item.reason }}</text>
+          <text class="operator">{{ item.operator ? (item.operator.nickname || item.operator.name) : '' }}</text>
+          <text class="time">{{ formatTime(item.created_at) }}</text>
+        </view>
+        <text class="amount" :class="item.amount >= 0 ? 'plus' : 'minus'">
           {{ item.amount >= 0 ? '+' : '' }}{{ item.amount }}
         </text>
       </view>
-
-      <!-- Add New Card -->
-      <view class="template-card card add-card" @click="showAddModal = true">
-        <text class="add-icon">+</text>
-        <text class="add-text">新增标签</text>
-      </view>
-    </view>
-
-    <!-- Add Template Modal -->
-    <view v-if="showAddModal" class="modal-mask" @click="showAddModal = false">
-      <view class="modal-content card" @click.stop>
-        <text class="modal-title">新建标签</text>
-        <input class="input-box" v-model="newTemplate.title" placeholder="标签名称" />
-        <input class="input-box" v-model="newTemplate.content" placeholder="标签描述" />
-        <input class="input-box" type="number" v-model.number="newTemplate.amount" placeholder="积分分值 (例如 10 或 -5)" />
-        <view class="modal-actions">
-          <view class="btn-cancel" @click="showAddModal = false">取消</view>
-          <view class="btn-submit" @click="saveTemplate">保存</view>
-        </view>
+      <view v-if="records.length === 0" class="empty-state">
+        <text>暂无记录</text>
       </view>
     </view>
   </view>
@@ -50,9 +66,37 @@
 import { ref, onMounted } from 'vue';
 import { request } from '../../utils/request';
 
+const userRole = ref('');
 const templates = ref<any[]>([]);
 const showAddModal = ref(false);
 const newTemplate = ref({ title: '', content: '', amount: 0 });
+const records = ref<any[]>([]);
+
+onMounted(() => {
+  const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
+  userRole.value = userInfo.role;
+
+  if (userRole.value === 'parent') {
+    fetchTemplates();
+  } else {
+    fetchHistory();
+  }
+});
+
+const fetchHistory = async () => {
+  try {
+    const res = await request({ url: '/child/points/history', method: 'GET' });
+    records.value = res || [];
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return '';
+  const date = new Date(timeStr);
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}`;
+};
 
 const fetchTemplates = async () => {
   try {
@@ -98,8 +142,6 @@ const handleDelete = (id: number) => {
     }
   });
 };
-
-onMounted(fetchTemplates);
 </script>
 
 <style lang="scss" scoped>
@@ -216,6 +258,23 @@ onMounted(fetchTemplates);
     }
     .btn-cancel { background: #f0f0f0; color: #666; }
     .btn-submit { background: #FF6B35; color: white; }
+  }
+}
+
+.history-view {
+  display: flex; flex-direction: column; gap: 20rpx;
+  .record-item {
+    padding: 24rpx;
+    display: flex; justify-content: space-between; align-items: center;
+    .record-info {
+      flex: 1;
+      .reason { font-size: 28rpx; color: #333; display: block; font-weight: bold; }
+      .operator { font-size: 24rpx; color: #999; display: block; margin-top: 4rpx; }
+      .time { font-size: 22rpx; color: #bbb; display: block; margin-top: 4rpx; }
+    }
+    .amount { font-size: 32rpx; font-weight: bold; }
+    .plus { color: #FF6B35; }
+    .minus { color: #666; }
   }
 }
 </style>

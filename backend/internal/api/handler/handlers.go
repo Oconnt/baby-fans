@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"baby-fans/internal/model"
 	"baby-fans/internal/repository"
@@ -75,12 +78,101 @@ func (h *AuthHandler) GetOverview(c *gin.Context) {
 	}
 
 	var records []model.PointsRecord
-	repository.DB.Where("user_id = ?", userID).Order("created_at desc").Limit(10).Find(&records)
+	repository.DB.Preload("Operator").Where("user_id = ?", userID).Order("created_at desc").Limit(10).Find(&records)
+
+	// Get bound parent name
+	parentName := ""
+	var binding model.ParentChild
+	if err := repository.DB.Where("child_id = ?", userID).First(&binding).Error; err == nil {
+		var parent model.User
+		if err := repository.DB.First(&parent, binding.ParentID).Error; err == nil {
+			parentName = parent.Nickname
+			if parentName == "" {
+				parentName = parent.Name
+			}
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"points":  user.Points,
-		"records": records,
+		"points":      user.Points,
+		"records":      records,
+		"parent_name":  parentName,
 	})
+}
+
+func (h *AuthHandler) UpdateProfile(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
+
+	var input struct {
+		Nickname  string `json:"nickname"`
+		AvatarURL string `json:"avatar_url"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user model.User
+	if err := repository.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	if input.Nickname != "" {
+		user.Nickname = input.Nickname
+	}
+	if input.AvatarURL != "" {
+		user.AvatarURL = input.AvatarURL
+	}
+
+	repository.DB.Save(&user)
+	c.JSON(http.StatusOK, user)
+}
+
+func (h *AuthHandler) UploadAvatar(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+		return
+	}
+
+	// Generate filename: avatars/{user_id}.{ext}
+	ext := ".jpg"
+	name := file.Filename
+	if len(name) > 4 {
+		ext = "." + strings.ToLower(name[len(name)-4:])
+		if ext == ".jpeg" {
+			ext = ".jpg"
+		}
+	}
+	filename := fmt.Sprintf("avatars/%d%s", userID, ext)
+	dst := fmt.Sprintf("./storage/uploads/%s", filename)
+
+	// Ensure directory exists
+	os.MkdirAll("./storage/uploads/avatars", 0755)
+
+	// Remove existing file if exists
+	os.Remove(dst)
+
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Update user avatar_url
+	var user model.User
+	if err := repository.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	avatarURL := "http://localhost:18081/storage/uploads/" + filename
+	user.AvatarURL = avatarURL
+	repository.DB.Save(&user)
+
+	c.JSON(http.StatusOK, gin.H{"url": avatarURL})
 }
 
 func (h *AuthHandler) GetChildren(c *gin.Context) {
@@ -214,8 +306,18 @@ func (h *PointsHandler) GetPointsRecords(c *gin.Context) {
 	// Find records where UserID is in children AND OperatorID is the parent
 	repository.DB.Where("user_id IN ? AND operator_id = ?", childIDs, parentID).
 		Preload("User"). // Load the child user details
+		Preload("Operator"). // Load the parent (operator) details
 		Order("created_at desc").
 		Find(&records)
+
+	c.JSON(http.StatusOK, records)
+}
+
+func (h *PointsHandler) GetPointsHistory(c *gin.Context) {
+	userID := c.MustGet("userID").(uint)
+
+	var records []model.PointsRecord
+	repository.DB.Preload("Operator").Where("user_id = ?", userID).Order("created_at desc").Find(&records)
 
 	c.JSON(http.StatusOK, records)
 }

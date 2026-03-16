@@ -1,26 +1,16 @@
 <template>
   <view class="container">
-    <!-- Header -->
-    <view class="header card">
-      <text class="title">孩子管理</text>
-      <text class="subtitle">管理已绑定的孩子</text>
-    </view>
 
-    <!-- Usage Tip -->
-    <view class="usage-tip card">
-      <text class="tip-text">💡 使用方法：点击【管理】按钮可手动调整积分，结合【标签管理】中定义的标签可实现快速发放。</text>
-    </view>
-
-    <!-- Bind by Login Code -->
-    <view class="bind-section">
+    <!-- Parent View: Bind Child -->
+    <view v-if="userRole === 'parent'" class="bind-section">
       <view class="bind-row">
         <input class="bind-input" v-model="loginCode" placeholder="输入孩子登录码" />
         <button class="bind-btn" @click="bindChild">绑定</button>
       </view>
     </view>
 
-    <!-- Children List -->
-    <view v-if="childrenList.length > 0" class="children-list">
+    <!-- Parent View: Children List -->
+    <view v-if="userRole === 'parent'" class="children-list">
       <view v-for="child in childrenList" :key="child.id" class="child-card card">
         <view class="child-info">
           <text class="child-name">{{ child.nickname || child.name }}</text>
@@ -31,12 +21,42 @@
           <button class="action-btn unbind" @click="unbindChild(child)">解绑</button>
         </view>
       </view>
-    </view>
-    <view v-else class="empty-state card">
-      <text>暂无绑定的孩子，请输入登录码绑定</text>
+      <view v-if="childrenList.length === 0" class="empty-state card">
+        <text>暂无绑定的孩子，请输入登录码绑定</text>
+      </view>
     </view>
 
-    <!-- Points Adjust Modal -->
+    <!-- Child View: Points Overview -->
+    <view v-if="userRole === 'child'" class="child-overview">
+      <view class="points-circle" @click="showRecords = !showRecords">
+        <text class="points-label">当前积分</text>
+        <text class="points-value">{{ childOverview.points }}</text>
+        <text class="toggle-hint">{{ showRecords ? '点击隐藏记录' : '点击查看记录' }}</text>
+      </view>
+
+      <view class="parent-info card">
+        <text class="parent-label">绑定家长</text>
+        <text class="parent-name">{{ childOverview.parent_name || '未绑定' }}</text>
+      </view>
+
+      <view v-if="showRecords" class="record-section">
+        <text class="section-title">最近记录</text>
+        <view class="record-list">
+          <view v-for="item in childOverview.records" :key="item.id" class="record-item card">
+            <view class="record-left">
+              <text class="record-reason">{{ item.reason }}</text>
+              <text class="record-operator">{{ item.operator ? (item.operator.nickname || item.operator.name) : '' }}</text>
+            </view>
+            <text class="record-amount" :class="item.amount >= 0 ? 'plus' : 'minus'">
+              {{ item.amount >= 0 ? '+' : '' }}{{ item.amount }}
+            </text>
+          </view>
+          <view v-if="childOverview.records.length === 0" class="empty-tip">暂无记录</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Points Adjust Modal (Parent Only) -->
     <view v-if="showPointsModal" class="modal-mask" @click="showPointsModal = false">
       <view class="modal-content card" @click.stop>
         <text class="modal-title">调整积分 - {{ selectedChild?.nickname || selectedChild?.name }}</text>
@@ -76,8 +96,15 @@
 import { ref, onMounted } from 'vue';
 import { request } from '../../utils/request';
 
+    const userRole = ref('');
     const childrenList = ref<any[]>([]);
     const loginCode = ref('');
+
+    // Child Overview Data
+    const childOverview = ref<any>({ points: 0, records: [], parent_name: '' });
+    const showRecords = ref(false);
+
+    // Parent Modal Data
     const showPointsModal = ref(false);
     const selectedChild = ref<any>(null);
     const pointTemplates = ref<any[]>([]);
@@ -89,8 +116,24 @@ import { request } from '../../utils/request';
         uni.reLaunch({ url: '/pages/login/login' });
         return;
       }
-      fetchChildren();
+      const userInfo = JSON.parse(stored);
+      userRole.value = userInfo.role;
+
+      if (userRole.value === 'parent') {
+        fetchChildren();
+      } else {
+        fetchChildOverview();
+      }
     });
+
+    const fetchChildOverview = async () => {
+      try {
+        const res = await request({ url: '/child/overview', method: 'GET' });
+        childOverview.value = res || { points: 0, records: [] };
+      } catch (e) {
+        console.error(e);
+      }
+    };
 
     const fetchChildren = async () => {
       try {
@@ -302,6 +345,33 @@ const unbindChild = (child: any) => {
   background: white;
   border-radius: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+}
+
+.child-overview {
+  .points-card {
+    padding: 60rpx;
+    text-align: center;
+    margin-bottom: 40rpx;
+    background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
+    color: white;
+    .points-label { font-size: 28rpx; opacity: 0.9; }
+    .points-value { font-size: 80rpx; font-weight: bold; display: block; margin-top: 10rpx; }
+  }
+  .section-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; display: block; }
+  .record-list {
+    display: flex; flex-direction: column; gap: 20rpx;
+    .record-item {
+      padding: 24rpx; display: flex; justify-content: space-between; align-items: center;
+      .record-left {
+        flex: 1;
+        .record-reason { font-size: 28rpx; color: #333; display: block; }
+        .record-operator { font-size: 24rpx; color: #999; display: block; margin-top: 4rpx; }
+      }
+      .record-amount { font-size: 32rpx; font-weight: bold; }
+      .plus { color: #FF6B35; }
+      .minus { color: #666; }
+    }
+  }
 }
 
 .modal-mask {
