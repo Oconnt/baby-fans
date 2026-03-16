@@ -10,13 +10,13 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "Baby-Fans"
+				"navigationBarTitleText": "积分详情"
 			}
 		},
 		{
 			"path": "pages/shop/shop",
 			"style": {
-				"navigationBarTitleText": "心愿商城"
+				"navigationBarTitleText": "积分商城"
 			}
 		},
 		{
@@ -29,7 +29,7 @@
 		{
 			"path": "pages/points/points",
 			"style": {
-				"navigationBarTitleText": "标签管理"
+				"navigationBarTitleText": "积分修改记录"
 			}
 		},
 		{
@@ -61,27 +61,27 @@
 		"list": [
 			{
 				"pagePath": "pages/index/index",
-				"text": "孩子管理",
-				"iconPath": "static/logo.png",
-				"selectedIconPath": "static/logo.png"
+				"text": "积分详情",
+				"iconPath": "static/children.png",
+				"selectedIconPath": "static/children-selected.png"
 			},
 			{
 				"pagePath": "pages/points/points",
-				"text": "标签管理",
-				"iconPath": "static/logo.png",
-				"selectedIconPath": "static/logo.png"
+				"text": "积分修改记录",
+				"iconPath": "static/tag.png",
+				"selectedIconPath": "static/tag-selected.png"
 			},
 			{
 				"pagePath": "pages/shop/shop",
-				"text": "前往商城",
-				"iconPath": "static/logo.png",
-				"selectedIconPath": "static/logo.png"
+				"text": "积分商城",
+				"iconPath": "static/shop.png",
+				"selectedIconPath": "static/shop-selected.png"
 			},
 			{
 				"pagePath": "pages/mine/mine",
 				"text": "个人中心",
-				"iconPath": "static/logo.png",
-				"selectedIconPath": "static/logo.png"
+				"iconPath": "static/mine.png",
+				"selectedIconPath": "static/mine-selected.png"
 			}
 		]
 	}

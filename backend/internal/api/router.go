@@ -80,7 +80,14 @@ func SetupRouter() *gin.Engine {
 		child.GET("/overview", authHandler.GetOverview)
 		child.POST("/binding/accept", authHandler.AcceptBinding)
 		child.POST("/exchange", shopHandler.Exchange)
+		child.POST("/profile", authHandler.UpdateProfile)
+		child.GET("/points/history", pointsHandler.GetPointsHistory)
 	}
+
+	// Common routes (requires auth)
+	parent.POST("/profile", authHandler.UpdateProfile)
+	parent.POST("/avatar", authHandler.UploadAvatar)
+	child.POST("/avatar", authHandler.UploadAvatar)
 
 	return r
 }

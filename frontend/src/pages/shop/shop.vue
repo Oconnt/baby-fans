@@ -2,11 +2,6 @@
   <view class="container">
     <!-- Parent View: Item Management -->
     <view v-if="userRole === 'parent'" class="admin-view">
-      <view class="header card">
-        <text class="title">积分商城</text>
-        <text class="subtitle">管理商品和库存</text>
-      </view>
-
       <view class="card add-card" @click="openAddModal">
         <text class="plus">+</text>
         <text class="label">上架新商品</text>
@@ -20,7 +15,7 @@
             <text class="price">{{ item.price }} ⭐ | 库存: {{ item.stock }}</text>
           </view>
           <view class="actions">
-            <text class="stock-btn" @click="updateStock(item)">改库存</text>
+            <text class="stock-btn" @click="openEditModal(item)">修改</text>
             <text class="del-btn" @click="deleteItem(item.id)">下架</text>
           </view>
         </view>
@@ -29,11 +24,6 @@
 
     <!-- Child View: Wish Shop -->
     <view v-else class="shop-view">
-      <view class="header card">
-        <text class="title">心愿商城</text>
-        <text class="subtitle">挑选你心仪的奖品吧</text>
-      </view>
-
       <view class="item-grid">
         <view v-for="item in items" :key="item.id" class="card product-card">
           <text class="product-name">{{ item.name }}</text>
@@ -47,17 +37,34 @@
       </view>
     </view>
 
-    <!-- Add Item Modal -->
-    <view v-if="showAddItem" class="modal-mask" @click="showAddItem = false">
+    <!-- Add/Edit Item Modal -->
+    <view v-if="showAddItem" class="modal-mask" @click="closeModal">
       <view class="modal-content card" @click.stop>
-        <text class="modal-title">上架新商品</text>
-        <input class="input-box" v-model="newItem.name" placeholder="商品名称" />
-        <input class="input-box" v-model="newItem.description" placeholder="商品描述" />
-        <input class="input-box" type="number" v-model.number="newItem.price" placeholder="所需积分" />
-        <input class="input-box" type="number" v-model.number="newItem.stock" placeholder="初始库存" />
+        <text class="modal-title">{{ editingItem?.id ? '修改商品' : '上架新商品' }}</text>
+
+        <view class="form-group">
+          <text class="label">商品名称</text>
+          <input class="input-box" v-model="editingItem.name" placeholder="请输入商品名称" placeholder-style="color: #999;" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">商品描述</text>
+          <input class="input-box" v-model="editingItem.description" placeholder="请输入商品描述" placeholder-style="color: #999;" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">所需积分</text>
+          <input class="input-box" type="number" v-model.number="editingItem.price" placeholder="请输入所需积分" placeholder-style="color: #999;" />
+        </view>
+
+        <view class="form-group">
+          <text class="label">库存数量</text>
+          <input class="input-box" type="number" v-model.number="editingItem.stock" placeholder="请输入库存数量" placeholder-style="color: #999;" />
+        </view>
+
         <view class="modal-actions">
-          <button class="btn-cancel" @click="showAddItem = false">取消</button>
-          <button class="btn-submit" @click="saveItem">确认上架</button>
+          <button class="btn-cancel" @click="closeModal">取消</button>
+          <button class="btn-submit" @click="saveItem">{{ editingItem?.id ? '保存修改' : '确认上架' }}</button>
         </view>
       </view>
     </view>
@@ -71,7 +78,6 @@ import { request } from '../../utils/request';
 const userRole = ref('');
 const items = ref<any[]>([]);
 const showAddItem = ref(false);
-const newItem = ref({ name: '', description: '', price: 0, stock: 10 });
 
 const loadData = async () => {
   const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
@@ -85,51 +91,45 @@ const loadData = async () => {
 };
 
 const openAddModal = () => {
-  newItem.value = { name: '', description: '', price: 0, stock: 10 };
+  editingItem.value = { name: '', description: '', price: 0, stock: 10 };
   showAddItem.value = true;
 };
 
+const openEditModal = (item: any) => {
+  editingItem.value = { ...item }; // Copy original values
+  showAddItem.value = true;
+};
+
+const closeModal = () => {
+  showAddItem.value = false;
+  editingItem.value = { name: '', description: '', price: 0, stock: 10 };
+};
+
 const saveItem = async () => {
-  if (!newItem.value.name || newItem.value.price <= 0) {
-    return uni.showToast({ title: '请填写完整信息', icon: 'none' });
+  if (!editingItem.value.name) {
+    return uni.showToast({ title: '请填写商品名称', icon: 'none' });
+  }
+  if (editingItem.value.price <= 0) {
+    return uni.showToast({ title: '所需积分必须大于0', icon: 'none' });
+  }
+  if (editingItem.value.stock < 0) {
+    return uni.showToast({ title: '库存不能为负数', icon: 'none' });
   }
   try {
     await request({
       url: '/parent/items',
       method: 'POST',
-      data: newItem.value
+      data: editingItem.value
     });
-    showAddItem.value = false;
+    uni.showToast({ title: '保存成功', icon: 'success' });
+    closeModal();
     loadData();
   } catch (e) {
     uni.showToast({ title: '保存失败', icon: 'none' });
   }
 };
 
-const updateStock = (item: any) => {
-  uni.showModal({
-    title: `修改 ${item.name} 库存`,
-    editable: true,
-    placeholderText: `当前库存: ${item.stock}`,
-    success: async (res) => {
-      if (res.confirm && res.content) {
-        const stock = parseInt(res.content);
-        if (isNaN(stock) || stock < 0) return uni.showToast({ title: '请输入有效数字', icon: 'none' });
-        try {
-          await request({
-            url: `/parent/items/${item.id}/stock`,
-            method: 'PUT',
-            data: { stock }
-          });
-          uni.showToast({ title: '更新成功', icon: 'success' });
-          loadData();
-        } catch (e) {
-          uni.showToast({ title: '更新失败', icon: 'none' });
-        }
-      }
-    }
-  });
-};
+const editingItem = ref<any>(null);
 
 const deleteItem = (id: number) => {
   uni.showModal({
@@ -257,17 +257,24 @@ onMounted(loadData);
 
 .modal-mask {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.5); z-index: 1000; display: flex;
+  background: rgba(0,0,0,0.5); z-index: 100; display: flex;
   align-items: center; justify-content: center;
 }
 
 .modal-content {
-  width: 80%; padding: 48rpx;
+  width: 80%; padding: 48rpx; z-index: 101;
   .modal-title { font-size: 36rpx; font-weight: bold; color: #333; margin-bottom: 40rpx; display: block; text-align: center; }
+  .form-group { margin-bottom: 20rpx; }
+  .label { font-size: 26rpx; color: #666; margin-bottom: 10rpx; display: block; font-weight: bold; }
   .input-box {
-    background: #f8f9fa; border: 1px solid #eee; border-radius: 16rpx; padding: 20rpx;
+    display: block;
+    background: #f8f9fa; border: 1px solid #FF6B35; border-radius: 16rpx;
+    padding: 20rpx;
     margin-bottom: 24rpx; font-size: 28rpx; width: 100%; box-sizing: border-box;
-    color: #333;
+    color: #333333;
+    height: 80rpx;
+    caret-color: #333333;
+    font-weight: bold;
   }
   .modal-actions {
     display: flex; gap: 20rpx; margin-top: 20rpx;

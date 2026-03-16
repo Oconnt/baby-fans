@@ -6,9 +6,9 @@
       <view class="bg-circle bottom-left"></view>
 
       <view class="user-header">
-        <image class="avatar" :src="userInfo.avatar_url || '/static/logo.png'" mode="aspectFill" />
+        <image class="avatar" :src="avatarUrl" mode="aspectFill" @click="changeAvatar" />
         <view class="user-main">
-          <text class="nickname fredoka">{{ userInfo.nickname || 'Baby User' }}</text>
+          <text class="nickname fredoka" @click="changeNickname">{{ userInfo.nickname || '点击设置昵称' }}</text>
           <view class="role-badge">{{ userInfo.role === 'parent' ? '家长管理端' : '宝贝端' }}</view>
         </view>
       </view>
@@ -68,10 +68,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { request } from '../../utils/request';
 
 const userInfo = ref<any>({});
+const avatarRefreshKey = ref(0);
+
+const avatarUrl = computed(() => {
+  avatarRefreshKey.value; // dependency
+  if (!userInfo.value.avatar_url) return '/static/logo.png';
+  // Add timestamp to force refresh
+  const url = userInfo.value.avatar_url;
+  const separator = url.includes('?') ? '&' : '?';
+  return url + separator + 't=' + Date.now();
+});
 const isLoggedIn = ref(false);
 
 const loadData = () => {
@@ -86,6 +96,87 @@ const loadData = () => {
 };
 
 onMounted(loadData);
+
+const changeNickname = () => {
+  uni.showModal({
+    title: '修改昵称',
+    editable: true,
+    placeholderText: '请输入新昵称',
+    success: async (res) => {
+      if (res.confirm && res.content) {
+        try {
+          const role = userInfo.value.role;
+          const url = role === 'parent' ? '/parent/profile' : '/child/profile';
+          await request({
+            url: url,
+            method: 'POST',
+            data: { nickname: res.content }
+          });
+          userInfo.value.nickname = res.content;
+          uni.setStorageSync('userInfo', JSON.stringify(userInfo.value));
+          uni.showToast({ title: '修改成功', icon: 'success' });
+        } catch (e) {
+          uni.showToast({ title: '修改失败', icon: 'none' });
+        }
+      }
+    }
+  });
+};
+
+const changeAvatar = () => {
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success: async (res) => {
+      const tempFilePath = res.tempFilePaths[0];
+      uni.showLoading({ title: '上传中...' });
+
+      try {
+        const token = uni.getStorageSync('token');
+        const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
+        const url = userInfo.role === 'parent' ? '/parent/avatar' : '/child/avatar';
+
+        // Upload file
+        const uploadRes = await new Promise((resolve, reject) => {
+          uni.uploadFile({
+            url: 'http://localhost:18081' + url,
+            filePath: tempFilePath,
+            name: 'file',
+            header: {
+              'Authorization': 'Bearer ' + token
+            },
+            success: (res) => {
+              if (res.statusCode === 200) {
+                resolve(JSON.parse(res.data));
+              } else {
+                reject(res);
+              }
+            },
+            fail: reject
+          });
+        });
+
+        // Update local user info
+        const newUserInfo = { ...userInfo, avatar_url: uploadRes.url };
+        uni.setStorageSync('userInfo', JSON.stringify(newUserInfo));
+
+        // Update global ref
+        userInfo.value = newUserInfo;
+
+        // Force refresh avatar
+        avatarRefreshKey.value++;
+
+        uni.hideLoading();
+        uni.showToast({ title: '修改成功', icon: 'success' });
+      } catch (e) {
+        uni.hideLoading();
+        uni.showToast({ title: '上传失败', icon: 'none' });
+        console.error(e);
+      }
+    }
+  });
+};
 
 const handleLogout = () => {
   uni.showModal({
@@ -242,8 +333,8 @@ const showBindInput = () => {
 .action-area {
   padding: 40rpx 32rpx;
   .logout-btn {
-    background: #F5F5F5;
-    color: #888;
+    background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+    color: white;
     border-radius: 24rpx;
     font-weight: 800;
     font-size: 28rpx;
