@@ -28,6 +28,10 @@
         <text class="hint-btn parent" @click="loginCode = '888888'">家长端</text>
         <text class="hint-btn child" @click="loginCode = '666666'">孩子端</text>
       </view>
+
+      <view class="register-hint">
+        <text class="register-btn" @click="goToRegister">还没有账号？点击注册</text>
+      </view>
     </view>
 
     <text class="decoration decor1">🍭</text>
@@ -37,9 +41,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import { request } from '../../utils/request';
 
 const loginCode = ref('');
+
+onLoad((options) => {
+  if (options.code) {
+    loginCode.value = options.code;
+  }
+});
 
 const handleCodeLogin = async () => {
   if (loginCode.value.length < 6) return uni.showToast({ title: '码太短啦', icon: 'none' });
@@ -54,14 +65,14 @@ const handleCodeLogin = async () => {
     uni.setStorageSync('userInfo', JSON.stringify({
       id: res.user_id,
       role: res.role,
-      nickname: res.role === 'parent' ? '超级家长' : '勤劳宝宝',
-      points: 100
+      name: res.name,
+      nickname: res.nickname,
+      avatar_url: res.avatar_url
     }));
 
     uni.showToast({ title: '欢迎回来 ✨', icon: 'success' });
     setTimeout(() => {
-      // Navigate to the 'Home' tab
-      uni.switchTab({ url: '/pages/index/index' });
+      uni.switchTab({ url: '/pages/home-parent/home-parent' });
     }, 1000);
   } catch (e) {
     uni.showToast({ title: '登录码不对哦', icon: 'none' });
@@ -82,16 +93,26 @@ const handleWechatLogin = () => {
           }
         });
         uni.setStorageSync('token', res.token);
-        uni.setStorageSync('userInfo', JSON.stringify(res.user));
+        uni.setStorageSync('userInfo', JSON.stringify({
+          id: res.user_id,
+          role: res.role,
+          name: res.name,
+          nickname: res.nickname,
+          avatar_url: res.avatar_url
+        }));
         uni.showToast({ title: '微信登录成功', icon: 'success' });
         setTimeout(() => {
-          uni.switchTab({ url: '/pages/index/index' });
+          uni.switchTab({ url: '/pages/home-parent/home-parent' });
         }, 1000);
       } catch (e) {
         uni.showToast({ title: '微信授权失败', icon: 'none' });
       }
     }
   });
+};
+
+const goToRegister = () => {
+  uni.navigateTo({ url: '/pages/register/register' });
 };
 </script>
 
@@ -190,6 +211,17 @@ const handleWechatLogin = () => {
       border-radius: 10rpx;
       &.parent { color: var(--purple); background: #F3E5F5; }
       &.child { color: var(--orange); background: #FFF3E0; }
+    }
+  }
+
+  .register-hint {
+    display: flex;
+    justify-content: center;
+    margin-top: 30rpx;
+    .register-btn {
+      font-size: 24rpx;
+      color: #666;
+      text-decoration: underline;
     }
   }
 }

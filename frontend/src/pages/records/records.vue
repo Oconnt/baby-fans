@@ -21,6 +21,11 @@
               <text class="user">兑换人: {{ item.user?.nickname || '匿名孩子' }}</text>
               <text class="time">{{ formatTime(item.created_at) }}</text>
             </view>
+            <!-- Action buttons for Parent -->
+            <view v-if="userRole === 'parent' && item.status === 'pending'" class="actions">
+              <button class="action-btn confirm" @click="confirmRedemption(item.id)">确认兑现</button>
+              <button class="action-btn cancel" @click="cancelRedemption(item.id)">取消</button>
+            </view>
           </view>
         </view>
         <view class="loading-more" v-if="loading">加载中...</view>
@@ -53,6 +58,7 @@ interface Redemption {
 }
 
 const records = ref<Redemption[]>([]);
+const userRole = ref('');
 const loading = ref(false);
 const isRefreshing = ref(false);
 const hasMore = ref(true);
@@ -63,9 +69,12 @@ const fetchRecords = async (isRefresh = false) => {
   loading.value = true;
 
   try {
-    // Note: Backend endpoint /backend/internal/api/handler/handlers.go:225 defines GetRedemptions
+    const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
+    userRole.value = userInfo.role;
+    const endpoint = userInfo.role === 'parent' ? '/parent/redemptions' : '/child/redemptions';
+
     const res = await request<Redemption[]>({
-      url: `/parent/redemptions`, // As seen in router.go:65
+      url: endpoint,
       method: 'GET'
     });
 
@@ -100,11 +109,56 @@ const loadMore = () => {
 
 const formatStatus = (status: string) => {
   const map: Record<string, string> = {
-    'pending': '待确认',
-    'confirmed': '已完成',
+    'pending': '待兑现',
+    'completed': '已兑现',
+    'confirmed': '已兑现',
     'cancelled': '已取消'
   };
   return map[status] || status;
+};
+
+const confirmRedemption = async (id: number) => {
+  uni.showModal({
+    title: '确认兑现',
+    content: '确定要标记为已兑现吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await request({
+            url: `/parent/redemption/confirm/${id}`,
+            method: 'POST'
+          });
+          onRefresh();
+          uni.showToast({ title: '已兑现', icon: 'success' });
+        } catch (e) {
+          console.error(e);
+          uni.showToast({ title: '操作失败', icon: 'none' });
+        }
+      }
+    }
+  });
+};
+
+const cancelRedemption = async (id: number) => {
+  uni.showModal({
+    title: '取消兑换',
+    content: '确定要取消该兑换吗？积分将自动返还给孩子。',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await request({
+            url: `/parent/redemption/cancel/${id}`,
+            method: 'POST'
+          });
+          onRefresh();
+          uni.showToast({ title: '已取消', icon: 'success' });
+        } catch (e) {
+          console.error(e);
+          uni.showToast({ title: '操作失败', icon: 'none' });
+        }
+      }
+    }
+  });
 };
 
 const formatTime = (timeStr: string) => {
@@ -171,6 +225,7 @@ onMounted(() => {
         border-radius: 6rpx;
 
         &.pending { background-color: #fff7e6; color: #fa8c16; }
+        &.completed { background-color: #f6ffed; color: #52c41a; }
         &.confirmed { background-color: #f6ffed; color: #52c41a; }
         &.cancelled { background-color: #fff1f0; color: #f5222d; }
       }
@@ -186,6 +241,31 @@ onMounted(() => {
         font-size: 24rpx;
         color: #999;
         margin-top: 4rpx;
+      }
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10rpx;
+      .action-btn {
+        margin: 0;
+        padding: 0 30rpx;
+        height: 54rpx;
+        line-height: 54rpx;
+        font-size: 24rpx;
+        border-radius: 27rpx;
+        &::after { border: none; }
+        &.cancel {
+          background-color: #ffffff;
+          color: #999;
+          border: 1px solid #ddd;
+          margin-left: 12rpx;
+        }
+        &.confirm {
+          background-color: #007AFF;
+          color: #ffffff;
+        }
       }
     }
   }

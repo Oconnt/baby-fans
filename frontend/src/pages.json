@@ -8,9 +8,39 @@
 			}
 		},
 		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
+		},
+		{
+			"path": "pages/register-success/register-success",
+			"style": {
+				"navigationBarTitleText": "注册成功"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "积分详情"
+			}
+		},
+		{
+			"path": "pages/home-parent/home-parent",
+			"style": {
+				"navigationBarTitleText": "孩子管理"
+			}
+		},
+		{
+			"path": "pages/tags/tags",
+			"style": {
+				"navigationBarTitleText": "标签管理"
+			}
+		},
+		{
+			"path": "pages/points/points",
+			"style": {
+				"navigationBarTitleText": "积分修改记录"
 			}
 		},
 		{
@@ -24,12 +54,6 @@
 			"style": {
 				"navigationBarTitleText": "个人中心",
 				"enablePullDownRefresh": false
-			}
-		},
-		{
-			"path": "pages/points/points",
-			"style": {
-				"navigationBarTitleText": "积分修改记录"
 			}
 		},
 		{
@@ -60,14 +84,14 @@
 		"backgroundColor": "#ffffff",
 		"list": [
 			{
-				"pagePath": "pages/index/index",
-				"text": "积分详情",
+				"pagePath": "pages/home-parent/home-parent",
+				"text": "孩子管理",
 				"iconPath": "static/children.png",
 				"selectedIconPath": "static/children-selected.png"
 			},
 			{
-				"pagePath": "pages/points/points",
-				"text": "积分修改记录",
+				"pagePath": "pages/tags/tags",
+				"text": "标签管理",
 				"iconPath": "static/tag.png",
 				"selectedIconPath": "static/tag-selected.png"
 			},

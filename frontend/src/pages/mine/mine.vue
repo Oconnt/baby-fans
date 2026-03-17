@@ -13,7 +13,7 @@
         </view>
       </view>
 
-      <view class="points-display" v-if="userInfo.role !== 'parent'">
+      <!-- <view class="points-display" v-if="userInfo.role !== 'parent'">
         <text class="label">当前积分余额</text>
         <view class="amount-row">
           <text class="amount fredoka">{{ userInfo.points || 0 }}</text>
@@ -22,7 +22,7 @@
       </view>
 
       <text class="moto" v-if="userInfo.role !== 'parent'">加油！继续努力挣积分吧！</text>
-      <text class="decoration" v-if="userInfo.role !== 'parent'">🐻</text>
+      <text class="decoration" v-if="userInfo.role !== 'parent'">🐻</text> -->
     </view>
 
     <!-- Menu Section: Card Style -->
@@ -30,7 +30,7 @@
       <view class="card menu-item" @click="goToRecords">
         <view class="menu-left">
           <view class="icon-box" style="background: #FFF9C4;">🎁</view>
-          <text class="label">我的兑换记录</text>
+          <text class="label">兑换记录</text>
         </view>
         <text class="arrow">➔</text>
       </view>

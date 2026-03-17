@@ -48,6 +48,7 @@ func SetupRouter() *gin.Engine {
 	// Public routes
 	r.POST("/login/face", authHandler.LoginFace)
 	r.GET("/login/code", authHandler.LoginCode)
+	r.POST("/register", authHandler.Register)
 	r.POST("/api/v1/auth/wechat/login", authHandler.WeChatLogin)
 
 	// Global / Shop access for both
@@ -71,6 +72,7 @@ func SetupRouter() *gin.Engine {
 		parent.POST("/points/manage", pointsHandler.ManagePoints)
 		parent.GET("/points/records", pointsHandler.GetPointsRecords)
 		parent.POST("/redemption/confirm/:id", shopHandler.Confirm)
+		parent.POST("/redemption/cancel/:id", shopHandler.Cancel)
 	}
 
 	// Child routes
@@ -82,6 +84,7 @@ func SetupRouter() *gin.Engine {
 		child.POST("/exchange", shopHandler.Exchange)
 		child.POST("/profile", authHandler.UpdateProfile)
 		child.GET("/points/history", pointsHandler.GetPointsHistory)
+		child.GET("/redemptions", shopHandler.GetRedemptions)
 	}
 
 	// Common routes (requires auth)

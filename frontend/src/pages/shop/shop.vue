@@ -32,7 +32,10 @@
             <text class="price">{{ item.price }}</text>
             <text class="unit">⭐</text>
           </view>
-          <button class="buy-btn" @click="handleExchange(item)">兑换</button>
+          <view class="stock-row">
+            <text :class="['stock', item.stock === 0 ? 'out' : '']">库存: {{ item.stock }}</text>
+          </view>
+          <button class="buy-btn" :class="{ disabled: item.stock === 0 }" :disabled="item.stock === 0" @click="handleExchange(item)">{{ item.stock === 0 ? '已售罄' : '兑换' }}</button>
         </view>
       </view>
     </view>
@@ -166,7 +169,14 @@ const handleExchange = (item: any) => {
   });
 };
 
-onMounted(loadData);
+onMounted(() => {
+  const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
+  if (!userInfo.role) {
+    uni.reLaunch({ url: '/pages/login/login' });
+    return;
+  }
+  loadData();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -237,9 +247,14 @@ onMounted(loadData);
   .product-name { font-size: 28rpx; font-weight: bold; margin-bottom: 8rpx; }
   .product-desc { font-size: 22rpx; color: #999; margin-bottom: 12rpx; text-align: center; height: 60rpx; overflow: hidden; }
   .price-row {
-    display: flex; align-items: baseline; gap: 4rpx; margin-bottom: 20rpx;
+    display: flex; align-items: baseline; gap: 4rpx; margin-bottom: 10rpx;
     .price { font-size: 36rpx; font-weight: 900; color: #FF6B35; }
     .unit { font-size: 20rpx; color: #FF6B35; }
+  }
+  .stock-row {
+    margin-bottom: 20rpx;
+    .stock { font-size: 22rpx; color: #999; }
+    .stock.out { color: #ff4d4f; }
   }
   .buy-btn {
     width: 100%; background: #FF6B35; color: white;

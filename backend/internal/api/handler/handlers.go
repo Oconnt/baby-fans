@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -45,6 +46,50 @@ func (h *AuthHandler) LoginFace(c *gin.Context) {
 		"login_code": code,
 		"role":       user.Role,
 		"user_id":    user.ID,
+		"name":       user.Name,
+		"nickname":   user.Nickname,
+		"avatar_url": user.AvatarURL,
+	})
+}
+
+func (h *AuthHandler) Register(c *gin.Context) {
+	var input struct {
+		Role     string `json:"role"`
+		Nickname string `json:"nickname"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+		return
+	}
+
+	role := model.RoleParent
+	if input.Role == "child" {
+		role = model.RoleChild
+	}
+
+	// Generate login code
+	loginCode := fmt.Sprintf("%06d", rand.Intn(1000000))
+
+	// Generate a random unique name
+	randomName := fmt.Sprintf("User%d", rand.Intn(999999))
+
+	user := model.User{
+		Name:      randomName,
+		Role:      role,
+		Nickname:  input.Nickname,
+		LoginCode: loginCode,
+		Points:    0,
+	}
+
+	if err := repository.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "registered successfully",
+		"login_code": loginCode,
+		"user_id":    user.ID,
 	})
 }
 
@@ -63,9 +108,12 @@ func (h *AuthHandler) LoginCode(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"token":   token,
-		"role":    user.Role,
-		"user_id": user.ID,
+		"token":      token,
+		"role":       user.Role,
+		"user_id":    user.ID,
+		"name":       user.Name,
+		"nickname":   user.Nickname,
+		"avatar_url": user.AvatarURL,
 	})
 }
 
@@ -80,23 +128,25 @@ func (h *AuthHandler) GetOverview(c *gin.Context) {
 	var records []model.PointsRecord
 	repository.DB.Preload("Operator").Where("user_id = ?", userID).Order("created_at desc").Limit(10).Find(&records)
 
-	// Get bound parent name
-	parentName := ""
-	var binding model.ParentChild
-	if err := repository.DB.Where("child_id = ?", userID).First(&binding).Error; err == nil {
+	// Get all bound parent names
+	var parentNames []string
+	var bindings []model.ParentChild
+	repository.DB.Where("child_id = ?", userID).Find(&bindings)
+	for _, binding := range bindings {
 		var parent model.User
 		if err := repository.DB.First(&parent, binding.ParentID).Error; err == nil {
-			parentName = parent.Nickname
-			if parentName == "" {
-				parentName = parent.Name
+			name := parent.Nickname
+			if name == "" {
+				name = parent.Name
 			}
+			parentNames = append(parentNames, name)
 		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"points":      user.Points,
+		"points":       user.Points,
 		"records":      records,
-		"parent_name":  parentName,
+		"parent_names": parentNames,
 	})
 }
 
@@ -418,6 +468,19 @@ func (h *ShopHandler) Confirm(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "redemption confirmed"})
+}
+
+func (h *ShopHandler) Cancel(c *gin.Context) {
+	redemptionIDStr := c.Param("id")
+	redemptionID, _ := strconv.ParseUint(redemptionIDStr, 10, 32)
+
+	err := h.Service.CancelRedemption(uint(redemptionID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "redemption cancelled"})
 }
 
 func (h *ShopHandler) GetRedemptions(c *gin.Context) {

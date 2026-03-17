@@ -36,7 +36,12 @@
 
       <view class="parent-info card">
         <text class="parent-label">绑定家长</text>
-        <text class="parent-name">{{ childOverview.parent_name || '未绑定' }}</text>
+        <view class="parent-names">
+          <text v-if="childOverview.parent_names && childOverview.parent_names.length">
+            {{ childOverview.parent_names.join('、') }}
+          </text>
+          <text v-else>未绑定</text>
+        </view>
       </view>
 
       <view v-if="showRecords" class="record-section">
@@ -94,6 +99,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import { request } from '../../utils/request';
 
     const userRole = ref('');
@@ -101,7 +107,7 @@ import { request } from '../../utils/request';
     const loginCode = ref('');
 
     // Child Overview Data
-    const childOverview = ref<any>({ points: 0, records: [], parent_name: '' });
+    const childOverview = ref<any>({ points: 0, records: [], parent_names: [] });
     const showRecords = ref(false);
 
     // Parent Modal Data
@@ -110,7 +116,7 @@ import { request } from '../../utils/request';
     const pointTemplates = ref<any[]>([]);
     const manualAmount = ref('');
 
-    onMounted(() => {
+    const updateRoleAndData = () => {
       const stored = uni.getStorageSync('userInfo');
       if (!stored) {
         uni.reLaunch({ url: '/pages/login/login' });
@@ -120,16 +126,41 @@ import { request } from '../../utils/request';
       userRole.value = userInfo.role;
 
       if (userRole.value === 'parent') {
+        uni.setNavigationBarTitle({ title: '孩子管理' });
         fetchChildren();
       } else {
+        uni.setNavigationBarTitle({ title: '积分详情' });
         fetchChildOverview();
       }
+    };
+
+    onMounted(() => {
+      const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
+      if (userInfo.role === 'parent') {
+        uni.switchTab({ url: '/pages/home-parent/home-parent' });
+        return;
+      }
+      updateRoleAndData();
     });
+
+    onShow(() => {
+      updateRoleAndData();
+    });
+
+    const onTabItemTap = () => {
+      updateRoleAndData();
+    };
 
     const fetchChildOverview = async () => {
       try {
         const res = await request({ url: '/child/overview', method: 'GET' });
-        childOverview.value = res || { points: 0, records: [] };
+        console.log('child overview response:', res);
+        childOverview.value = {
+          points: res?.points || 0,
+          records: res?.records || [],
+          parent_names: res?.parent_names || []
+        };
+        console.log('childOverview.value:', childOverview.value);
       } catch (e) {
         console.error(e);
       }
@@ -348,15 +379,43 @@ const unbindChild = (child: any) => {
 }
 
 .child-overview {
-  .points-card {
-    padding: 60rpx;
+  .points-circle {
+    padding: 80rpx;
     text-align: center;
     margin-bottom: 40rpx;
     background: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
     color: white;
-    .points-label { font-size: 28rpx; opacity: 0.9; }
-    .points-value { font-size: 80rpx; font-weight: bold; display: block; margin-top: 10rpx; }
+    border-radius: 50%; /* Make it circular */
+    width: 400rpx; /* Fixed width */
+    height: 400rpx; /* Fixed height */
+    display: flex; /* Use flex to center content */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 40rpx auto; /* Center horizontally */
+    box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.3);
+
+    .points-label { font-size: 28rpx; opacity: 0.9; margin-bottom: 10rpx; }
+    .points-value { font-size: 80rpx; font-weight: bold; display: block; margin-bottom: 10rpx; }
+    .toggle-hint { font-size: 22rpx; opacity: 0.8; }
   }
+
+  .record-section {
+    margin-top: 30rpx;
+  }
+
+  .parent-info {
+    padding: 30rpx;
+    background: white;
+    border-radius: 16rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30rpx;
+    .parent-label { font-size: 28rpx; color: #999; }
+    .parent-name { font-size: 32rpx; font-weight: bold; color: #333; }
+  }
+
   .section-title { font-size: 30rpx; font-weight: bold; color: #333; margin-bottom: 20rpx; display: block; }
   .record-list {
     display: flex; flex-direction: column; gap: 20rpx;

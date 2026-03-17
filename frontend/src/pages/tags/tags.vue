@@ -87,9 +87,8 @@ const updateRoleAndTitle = () => {
 };
 
 onMounted(() => {
-  const userInfo = JSON.parse(uni.getStorageSync('userInfo') || '{}');
-  if (userInfo.role !== 'child') {
-    uni.showToast({ title: '请使用孩子账号登录', icon: 'none' });
+  const token = uni.getStorageSync('token');
+  if (!token) {
     uni.reLaunch({ url: '/pages/login/login' });
     return;
   }

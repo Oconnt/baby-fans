@@ -195,6 +195,56 @@ func (s *ShopService) ConfirmRedemption(redemptionID uint) error {
 	return repository.DB.Model(&model.Redemption{}).Where("id = ?", redemptionID).Update("status", model.RedemptionCompleted).Error
 }
 
+func (s *ShopService) CancelRedemption(redemptionID uint) error {
+	return repository.DB.Transaction(func(tx *gorm.DB) error {
+		var redemption model.Redemption
+		if err := tx.Preload("Item").First(&redemption, redemptionID).Error; err != nil {
+			return err
+		}
+
+		// 1. 检查状态，防止重复取消
+		if redemption.Status == model.RedemptionCancelled || redemption.Status == model.RedemptionCompleted {
+			return errors.New("redemption already processed")
+		}
+
+		// 2. 更新状态为已取消
+		if err := tx.Model(&redemption).Update("status", model.RedemptionCancelled).Error; err != nil {
+			return err
+		}
+
+		// 3. 恢复库存 (因为之前兑换扣除了库存)
+		if redemption.ItemID > 0 {
+			if err := tx.Model(&redemption.Item).Update("stock", gorm.Expr("stock + ?", 1)).Error; err != nil {
+				return err
+			}
+		}
+
+		// 4. 返还积分给孩子
+		if redemption.UserID > 0 && redemption.ItemID > 0 {
+			var user model.User
+			if err := tx.First(&user, redemption.UserID).Error; err != nil {
+				return err
+			}
+			user.Points += redemption.Item.Price
+			if err := tx.Save(&user).Error; err != nil {
+				return err
+			}
+
+			// 5. 记录积分变动
+			record := model.PointsRecord{
+				UserID:     redemption.UserID,
+				Amount:     redemption.Item.Price,
+				Reason:     "取消兑换: " + redemption.Item.Name,
+			}
+			if err := tx.Create(&record).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
 func (s *ShopService) CleanupEmptyStockItems() {
 	// Items with 0 stock for more than 24 hours should be deleted
 	threshold := time.Now().Add(-24 * time.Hour)

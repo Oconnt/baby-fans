@@ -17,6 +17,7 @@ type User struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
 	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
 	Role      Role           `gorm:"not null" json:"role"`
+	Password  string         `json:"password"`
 	LoginCode string         `json:"login_code"`
 	Points    int            `gorm:"default:0" json:"points"`
 	OpenID    string         `gorm:"index" json:"openid"`
@@ -73,6 +74,7 @@ type RedemptionStatus string
 const (
 	RedemptionPending   RedemptionStatus = "pending"
 	RedemptionCompleted RedemptionStatus = "completed"
+	RedemptionCancelled RedemptionStatus = "cancelled"
 )
 
 type Redemption struct {
