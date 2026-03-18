@@ -47,7 +47,8 @@
     <view v-if="userRole === 'child'" class="history-view">
       <view v-for="item in records" :key="item.id" class="record-item card">
         <view class="record-info">
-          <text class="reason">{{ item.reason }}</text>
+          <text class="reason" v-if="item.reason">{{ item.reason }}</text>
+          <text class="reason reason-empty" v-else>手动调整</text>
           <text class="operator">{{ item.operator ? (item.operator.nickname || item.operator.name) : '' }}</text>
           <text class="time">{{ formatTime(item.created_at) }}</text>
         </view>
@@ -289,7 +290,7 @@ const handleDelete = (id: number) => {
     display: flex; justify-content: space-between; align-items: center;
     .record-info {
       flex: 1;
-      .reason { font-size: 28rpx; color: #333; display: block; font-weight: bold; }
+      .reason { font-size: 28rpx; color: #333; display: block; font-weight: bold; &.reason-empty { color: #999; font-style: italic; } }
       .operator { font-size: 24rpx; color: #999; display: block; margin-top: 4rpx; }
       .time { font-size: 22rpx; color: #bbb; display: block; margin-top: 4rpx; }
     }

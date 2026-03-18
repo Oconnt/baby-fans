@@ -61,11 +61,14 @@
     <!-- Points Adjust Modal (Parent Only) -->
     <view v-if="showPointsModal" class="modal-mask" @click="showPointsModal = false">
       <view class="modal-content card" @click.stop>
-        <text class="modal-title">调整积分 - {{ selectedChild?.nickname || selectedChild?.name }}</text>
+        <view class="modal-header">
+          <text class="modal-title">调整积分 - {{ selectedChild?.nickname || selectedChild?.name }}</text>
+          <view class="modal-close" @click="showPointsModal = false">✕</view>
+        </view>
 
-        <view v-if="pointTemplates.length > 0" class="template-section">
+        <view class="template-section">
           <text class="section-label">快捷标签</text>
-          <view class="template-grid">
+          <view v-if="pointTemplates.length > 0" class="template-grid">
             <view
               v-for="item in pointTemplates"
               :key="item.id"
@@ -77,16 +80,17 @@
               <text class="chip-amount">{{ item.amount >= 0 ? '+' : '' }}{{ item.amount }}</text>
             </view>
           </view>
-        </view>
-        <view v-else class="empty-templates">
-          <text>暂无标签，请前往标签管理添加</text>
+          <view v-else class="empty-templates">
+            <text>暂无标签，请前往标签管理添加</text>
+          </view>
         </view>
 
         <view class="divider"></view>
 
         <view class="manual-section">
           <text class="section-label">手动输入</text>
-          <input class="input-box" v-model="manualAmount" type="number" placeholder="输入积分值 (如: 10 或 -5)" />
+          <input class="input-box" v-model="manualAmount" type="digit" placeholder="输入积分值 (如: 10 或 -5)" />
+          <input class="input-box" v-model="manualReason" placeholder="输入原因 (选填)" />
           <view class="btn-submit" @click="handleManualSubmit">确定发放</view>
         </view>
       </view>
@@ -112,6 +116,7 @@ import { request } from '../../utils/request';
     const selectedChild = ref<any>(null);
     const pointTemplates = ref<any[]>([]);
     const manualAmount = ref('');
+    const manualReason = ref('');
 
     const updateRoleAndData = () => {
       const stored = uni.getStorageSync('userInfo');
@@ -186,6 +191,7 @@ import { request } from '../../utils/request';
     const openAdjustModal = async (child: any) => {
       selectedChild.value = child;
       manualAmount.value = '';
+      manualReason.value = '';
       await fetchTemplates();
       showPointsModal.value = true;
     };
@@ -207,13 +213,15 @@ import { request } from '../../utils/request';
     };
 
     const handleTemplateClick = (template: any) => {
-      submitPoints(template.amount, template.title);
+      const reason = template.content?.trim() || template.title;
+      submitPoints(template.amount, reason);
     };
 
     const handleManualSubmit = () => {
       const amount = parseInt(manualAmount.value);
       if (isNaN(amount)) return uni.showToast({ title: '请输入有效数字', icon: 'none' });
-      submitPoints(amount, '手动调整');
+      const reason = manualReason.value.trim() || '手动调整';
+      submitPoints(amount, reason);
     };
 
 const bindChild = async () => {
@@ -440,24 +448,44 @@ const unbindChild = (child: any) => {
 }
 
 .modal-content {
-  width: 85%; max-height: 80vh; padding: 40rpx;
+  width: 85%; max-height: 70vh; padding: 40rpx;
   background: #ffffff; border-radius: 24rpx;
   pointer-events: auto;
   display: flex; flex-direction: column;
-  overflow-y: auto;
+  z-index: 10000;
 
   .modal-title {
     font-size: 36rpx; font-weight: bold; color: #333;
-    margin-bottom: 30rpx; display: block; text-align: center;
+    text-align: center;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30rpx;
+    padding-right: 10rpx;
+  }
+
+  .modal-close {
+    font-size: 36rpx;
+    color: #999;
+    padding: 10rpx;
+    line-height: 1;
   }
 
   .section-label {
     font-size: 24rpx; color: #999; margin-bottom: 16rpx; display: block;
   }
 
+  .template-section {
+    flex-shrink: 0;
+  }
+
   .template-grid {
     display: flex; flex-wrap: wrap; gap: 16rpx;
     margin-bottom: 30rpx;
+    flex-shrink: 0;
 
     .template-chip {
       padding: 12rpx 24rpx;
@@ -490,10 +518,13 @@ const unbindChild = (child: any) => {
   }
 
   .manual-section {
+    flex-shrink: 0;
     .input-box {
       background: #f8f9fa; border: 1px solid #ddd; border-radius: 16rpx;
       padding: 20rpx; margin-bottom: 20rpx; font-size: 30rpx; width: 100%; box-sizing: border-box;
       display: block;
+      height: 80rpx;
+      line-height: 40rpx;
     }
 
     .btn-submit {

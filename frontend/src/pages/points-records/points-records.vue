@@ -19,7 +19,8 @@
               </text>
             </view>
             <view class="body">
-              <text class="reason">原因: {{ item.reason }}</text>
+              <text class="reason" v-if="item.reason">原因: {{ item.reason }}</text>
+              <text class="reason reason-empty" v-else>手动调整</text>
               <text class="time">{{ formatTime(item.created_at) }}</text>
             </view>
           </view>
@@ -142,6 +143,7 @@ onMounted(() => {
       .reason {
         font-size: 26rpx;
         color: #666;
+        &.reason-empty { color: #999; font-style: italic; }
       }
       .time {
         font-size: 24rpx;
