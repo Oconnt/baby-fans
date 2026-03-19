@@ -1,0 +1,65 @@
+{
+	"pages": [
+		"pages/login/login",
+		"pages/register/register",
+		"pages/register-success/register-success",
+		"pages/index/index",
+		"pages/home-parent/home-parent",
+		"pages/tags/tags",
+		"pages/points/points",
+		"pages/shop/shop",
+		"pages/mine/mine",
+		"pages/records/records",
+		"pages/points-records/points-records"
+	],
+	"window": {
+		"backgroundTextStyle": "light",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"navigationBarTitleText": "Baby-Fans",
+		"navigationBarTextStyle": "black",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#FF6B35",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/home-parent/home-parent",
+				"text": "孩子管理",
+				"iconPath": "static/children.png",
+				"selectedIconPath": "static/children-selected.png"
+			},
+			{
+				"pagePath": "pages/tags/tags",
+				"text": "标签管理",
+				"iconPath": "static/tag.png",
+				"selectedIconPath": "static/tag-selected.png"
+			},
+			{
+				"pagePath": "pages/shop/shop",
+				"text": "积分商城",
+				"iconPath": "static/shop.png",
+				"selectedIconPath": "static/shop-selected.png"
+			},
+			{
+				"pagePath": "pages/mine/mine",
+				"text": "个人中心",
+				"iconPath": "static/mine.png",
+				"selectedIconPath": "static/mine-selected.png"
+			}
+		]
+	},
+	"usingComponents": {},
+	"permission": {
+		"scope.userLocation": {
+			"desc": "用于展示位置信息"
+		}
+	},
+	"requiredBackgroundModes": ["audio", "location"],
+	"networkTimeout": {
+		"request": 10000,
+		"downloadFile": 10000
+	}
+}
