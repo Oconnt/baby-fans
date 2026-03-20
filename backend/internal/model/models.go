@@ -102,3 +102,35 @@ type PointsTemplate struct {
 	Content string `json:"content"`
 	Amount  int    `json:"amount"`
 }
+
+// Task status constants
+const (
+	TaskPending   = 1 // 待办
+	TaskCompleted = 2 // 已完成
+	TaskExpired   = 3 // 已过期
+)
+
+type TaskTemplate struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Points      int       `json:"points"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type Task struct {
+	ID           uint       `gorm:"primaryKey" json:"id"`
+	Name         string     `json:"name"`
+	Description  string     `json:"description"`
+	Points       int        `json:"points"`
+	Status       int        `gorm:"default:1" json:"status"` // 1=待办, 2=已完成, 3=已过期
+	PublisherID  uint       `gorm:"index" json:"publisher_id"`
+	HandlerID    uint       `gorm:"index" json:"handler_id"`
+	PublishTime  time.Time  `json:"publish_time"`
+	ExpireTime   time.Time  `json:"expire_time"`
+	CompleteTime *time.Time `json:"complete_time,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+
+	Publisher User `gorm:"foreignKey:PublisherID" json:"publisher"`
+	Handler   User `gorm:"foreignKey:HandlerID" json:"handler"`
+}

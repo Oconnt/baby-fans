@@ -38,6 +38,8 @@ func InitDB() {
 		&model.Redemption{},
 		&model.FaceLog{},
 		&model.PointsTemplate{},
+		&model.TaskTemplate{},
+		&model.Task{},
 	)
 
 	// 强制初始化持久账号

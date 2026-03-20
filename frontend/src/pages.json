@@ -34,7 +34,7 @@
 		{
 			"path": "pages/tags/tags",
 			"style": {
-				"navigationBarTitleText": "标签管理"
+				"navigationBarTitleText": "资源管理"
 			}
 		},
 		{
@@ -69,6 +69,24 @@
 				"navigationBarTitleText": "积分派发记录",
 				"enablePullDownRefresh": true
 			}
+		},
+		{
+			"path": "pages/task-list/task-list",
+			"style": {
+				"navigationBarTitleText": "任务管理"
+			}
+		},
+		{
+			"path": "pages/task-template-list/task-template-list",
+			"style": {
+				"navigationBarTitleText": "任务模版管理"
+			}
+		},
+		{
+			"path": "pages/label-list/label-list",
+			"style": {
+				"navigationBarTitleText": "标签管理"
+			}
 		}
 	],
 	"globalStyle": {
@@ -91,9 +109,9 @@
 			},
 			{
 				"pagePath": "pages/tags/tags",
-				"text": "标签管理",
-				"iconPath": "static/tag.png",
-				"selectedIconPath": "static/tag-selected.png"
+				"text": "资源管理",
+				"iconPath": "static/resource.png",
+				"selectedIconPath": "static/resource-selected.png"
 			},
 			{
 				"pagePath": "pages/shop/shop",

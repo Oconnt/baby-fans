@@ -250,3 +250,93 @@ func (s *ShopService) CleanupEmptyStockItems() {
 	threshold := time.Now().Add(-24 * time.Hour)
 	repository.DB.Where("stock = 0 AND updated_at < ?", threshold).Delete(&model.ShopItem{})
 }
+
+// TaskTemplateService
+type TaskTemplateService struct{}
+
+func (s *TaskTemplateService) GetTemplates() ([]model.TaskTemplate, error) {
+	var templates []model.TaskTemplate
+	err := repository.DB.Order("created_at desc").Find(&templates).Error
+	return templates, err
+}
+
+func (s *TaskTemplateService) CreateTemplate(template *model.TaskTemplate) error {
+	return repository.DB.Create(template).Error
+}
+
+func (s *TaskTemplateService) DeleteTemplate(id uint) error {
+	return repository.DB.Delete(&model.TaskTemplate{}, id).Error
+}
+
+// TaskService
+type TaskService struct{}
+
+func (s *TaskService) CreateTask(task *model.Task) error {
+	return repository.DB.Create(task).Error
+}
+
+func (s *TaskService) GetTasksByChild(childID uint) ([]model.Task, error) {
+	var tasks []model.Task
+	err := repository.DB.Where("handler_id = ?", childID).
+		Preload("Publisher").
+		Order("publish_time desc").
+		Find(&tasks).Error
+	return tasks, err
+}
+
+func (s *TaskService) GetTodayTasks(childID uint) ([]model.Task, error) {
+	var tasks []model.Task
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	err := repository.DB.Where("handler_id = ? AND publish_time >= ? AND publish_time < ?", childID, startOfDay, endOfDay).
+		Preload("Publisher").
+		Order("publish_time desc").
+		Find(&tasks).Error
+	return tasks, err
+}
+
+func (s *TaskService) GetTaskByID(id uint) (*model.Task, error) {
+	var task model.Task
+	err := repository.DB.Preload("Publisher").First(&task, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+func (s *TaskService) GetTasksByPublisher(publisherID uint) ([]model.Task, error) {
+	var tasks []model.Task
+	err := repository.DB.Where("publisher_id = ?", publisherID).
+		Preload("Handler").
+		Order("created_at desc").
+		Find(&tasks).Error
+	return tasks, err
+}
+
+func (s *TaskService) UpdateTaskStatus(id uint, status int) error {
+	updates := map[string]interface{}{"status": status}
+	if status == model.TaskCompleted {
+		now := time.Now()
+		updates["complete_time"] = &now
+	}
+	return repository.DB.Model(&model.Task{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (s *TaskService) ExpireOldTasks() error {
+	now := time.Now()
+	return repository.DB.Model(&model.Task{}).
+		Where("status = ? AND expire_time < ?", model.TaskPending, now).
+		Updates(map[string]interface{}{"status": model.TaskExpired}).Error
+}
+
+func (s *TaskService) PublishTask(task *model.Task) error {
+	return repository.DB.Transaction(func(tx *gorm.DB) error {
+		// Create the task
+		if err := tx.Create(task).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}

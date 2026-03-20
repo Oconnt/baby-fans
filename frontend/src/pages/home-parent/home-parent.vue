@@ -18,6 +18,7 @@
         </view>
         <view class="child-actions">
           <button class="action-btn manage" @click="openAdjustModal(child)">管理</button>
+          <button class="action-btn task" @click="openTaskModal(child)">任务</button>
           <button class="action-btn unbind" @click="unbindChild(child)">解绑</button>
         </view>
       </view>
@@ -95,6 +96,48 @@
         </view>
       </view>
     </view>
+
+    <!-- Task Modal -->
+    <view v-if="showTaskModal" class="modal-mask" @click="showTaskModal = false">
+      <view class="modal-content card" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">派发任务 - {{ selectedChild?.nickname || selectedChild?.name }}</text>
+          <view class="modal-close" @click="showTaskModal = false">✕</view>
+        </view>
+
+        <view class="template-section">
+          <text class="section-label">选择任务模版</text>
+          <view v-if="taskTemplates.length > 0" class="template-grid">
+            <view
+              v-for="item in taskTemplates"
+              :key="item.id"
+              class="template-chip"
+              @click="selectTaskTemplate(item)"
+            >
+              <text class="chip-title">{{ item.name }}</text>
+              <text class="chip-points">+{{ item.points }}分</text>
+            </view>
+          </view>
+          <view v-else class="empty-templates">
+            <text>暂无任务模版</text>
+          </view>
+        </view>
+
+        <view class="divider"></view>
+
+        <view class="manual-section">
+          <text class="section-label">自定义任务</text>
+          <input class="input-box" v-model="newTask.name" placeholder="任务名称" />
+          <input class="input-box" v-model="newTask.description" placeholder="任务描述 (选填)" />
+          <input class="input-box" v-model="newTask.points" type="number" placeholder="奖励积分" />
+          <text class="section-label" style="margin-top: 16rpx;">过期时间</text>
+          <picker mode="date" :value="newTask.expireDate" @change="onExpireDateChange">
+            <view class="picker-value">{{ newTask.expireDate || '选择日期' }}</view>
+          </picker>
+          <view class="btn-submit" @click="handlePublishTask">派发任务</view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -118,6 +161,11 @@ import { request } from '../../utils/request';
     const manualAmount = ref('');
     const manualReason = ref('');
 
+    // Task Modal Data
+    const showTaskModal = ref(false);
+    const taskTemplates = ref<any[]>([]);
+    const newTask = ref({ name: '', description: '', points: '', expireDate: '' });
+
     const updateRoleAndData = () => {
       const stored = uni.getStorageSync('userInfo');
       if (!stored) {
@@ -130,7 +178,7 @@ import { request } from '../../utils/request';
       if (userRole.value === 'parent') {
         uni.setNavigationBarTitle({ title: '孩子管理' });
         uni.setTabBarItem({ index: 0, text: '孩子管理' });
-        uni.setTabBarItem({ index: 1, text: '标签管理' });
+        uni.setTabBarItem({ index: 1, text: '资源管理' });
         fetchChildren();
       } else {
         uni.setNavigationBarTitle({ title: '积分详情' });
@@ -222,6 +270,65 @@ import { request } from '../../utils/request';
       if (isNaN(amount)) return uni.showToast({ title: '请输入有效数字', icon: 'none' });
       const reason = manualReason.value.trim() || '手动调整';
       submitPoints(amount, reason);
+    };
+
+    // Task functions
+    const openTaskModal = async (child: any) => {
+      selectedChild.value = child;
+      newTask.value = { name: '', description: '', points: '', expireDate: '' };
+      await fetchTaskTemplates();
+      showTaskModal.value = true;
+    };
+
+    const fetchTaskTemplates = async () => {
+      try {
+        const res = await request({ url: '/parent/task-templates', method: 'GET' });
+        taskTemplates.value = res || [];
+      } catch (e) {
+        taskTemplates.value = [];
+      }
+    };
+
+    const selectTaskTemplate = (template: any) => {
+      newTask.value.name = template.name;
+      newTask.value.description = template.description;
+      newTask.value.points = template.points.toString();
+    };
+
+    const onExpireDateChange = (e: any) => {
+      newTask.value.expireDate = e.detail.value;
+    };
+
+    const handlePublishTask = async () => {
+      if (!newTask.value.name) return uni.showToast({ title: '请填写任务名称', icon: 'none' });
+      if (!newTask.value.points) return uni.showToast({ title: '请填写奖励积分', icon: 'none' });
+      if (!newTask.value.expireDate) return uni.showToast({ title: '请选择过期时间', icon: 'none' });
+      if (!selectedChild.value) return;
+
+      const points = parseInt(newTask.value.points);
+      if (isNaN(points)) return uni.showToast({ title: '请输入有效积分', icon: 'none' });
+
+      // Set expire time to end of selected day
+      const expireTime = new Date(newTask.value.expireDate);
+      expireTime.setHours(23, 59, 59, 999);
+
+      try {
+        await request({
+          url: '/parent/tasks',
+          method: 'POST',
+          data: {
+            name: newTask.value.name,
+            description: newTask.value.description,
+            points: points,
+            handler_id: selectedChild.value.id,
+            expire_time: expireTime.toISOString()
+          }
+        });
+        uni.showToast({ title: '任务派发成功', icon: 'success' });
+        showTaskModal.value = false;
+      } catch (e) {
+        uni.showToast({ title: '派发失败', icon: 'none' });
+      }
     };
 
 const bindChild = async () => {
@@ -367,6 +474,7 @@ const unbindChild = (child: any) => {
       margin: 0;
       &::after { border: none; }
       &.manage { background: #FF6B35; color: white; }
+      &.task { background: #007AFF; color: white; }
       &.unbind { background: #f0f0f0; color: #999; }
     }
   }
@@ -527,11 +635,27 @@ const unbindChild = (child: any) => {
       line-height: 40rpx;
     }
 
+    .picker-value {
+      background: #f8f9fa; border: 1px solid #ddd; border-radius: 16rpx;
+      padding: 20rpx; margin-bottom: 20rpx; font-size: 30rpx;
+    }
+
     .btn-submit {
       background: #FF6B35; color: white; border-radius: 40rpx;
       height: 80rpx; line-height: 80rpx; text-align: center;
       font-size: 28rpx; font-weight: bold;
     }
+  }
+
+  .template-chip {
+    padding: 12rpx 24rpx;
+    border-radius: 30rpx;
+    background: #f5f5f5;
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 120rpx;
+
+    .chip-title { font-size: 24rpx; color: #333; }
+    .chip-points { font-size: 22rpx; color: #FF6B35; margin-top: 4rpx; }
   }
 }
 </style>

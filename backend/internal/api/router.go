@@ -40,6 +40,7 @@ func SetupRouter() *gin.Engine {
 	authService := &service.AuthService{}
 	pointsService := &service.PointsService{}
 	shopService := &service.ShopService{}
+	taskHandler := handler.NewTaskHandler()
 
 	authHandler := &handler.AuthHandler{Service: authService}
 	pointsHandler := &handler.PointsHandler{Service: pointsService}
@@ -73,6 +74,13 @@ func SetupRouter() *gin.Engine {
 		parent.GET("/points/records", pointsHandler.GetPointsRecords)
 		parent.POST("/redemption/confirm/:id", shopHandler.Confirm)
 		parent.POST("/redemption/cancel/:id", shopHandler.Cancel)
+		// Task routes
+		parent.GET("/task-templates", taskHandler.GetTaskTemplates)
+		parent.POST("/task-templates", taskHandler.CreateTaskTemplate)
+		parent.DELETE("/task-templates/:id", taskHandler.DeleteTaskTemplate)
+		parent.GET("/tasks", taskHandler.GetParentTasks)
+		parent.POST("/tasks", taskHandler.CreateTask)
+		parent.PUT("/tasks/:id/status", taskHandler.UpdateTaskStatus)
 	}
 
 	// Child routes
@@ -85,6 +93,11 @@ func SetupRouter() *gin.Engine {
 		child.POST("/profile", authHandler.UpdateProfile)
 		child.GET("/points/history", pointsHandler.GetPointsHistory)
 		child.GET("/redemptions", shopHandler.GetRedemptions)
+		// Task routes
+		child.GET("/tasks/today", taskHandler.GetTodayTasks)
+		child.GET("/tasks", taskHandler.GetChildTasks)
+		child.GET("/tasks/:id", taskHandler.GetTaskDetail)
+		child.PUT("/tasks/:id/complete", taskHandler.CompleteTask)
 	}
 
 	// Common routes (requires auth)

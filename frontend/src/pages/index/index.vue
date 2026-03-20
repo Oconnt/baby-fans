@@ -28,10 +28,10 @@
 
     <!-- Child View: Points Overview -->
     <view v-if="userRole === 'child'" class="child-overview">
-      <view class="points-circle" @click="showRecords = !showRecords">
+      <view class="points-circle" @click="toggleTasks">
         <text class="points-label">当前积分</text>
         <text class="points-value">{{ childOverview.points }}</text>
-        <text class="toggle-hint">{{ showRecords ? '点击隐藏记录' : '点击查看记录' }}</text>
+        <text class="toggle-hint">{{ showTasks ? '点击隐藏任务' : '点击查看今日任务' }}</text>
       </view>
 
       <view class="parent-info card">
@@ -42,6 +42,24 @@
           </text>
           <text v-else>未绑定</text>
         </view>
+      </view>
+
+      <!-- Today's Tasks Section -->
+      <view v-if="showTasks" class="task-section">
+        <text class="section-title">今日任务</text>
+        <view v-if="todayTasks.length > 0" class="task-list">
+          <view v-for="task in todayTasks" :key="task.id" class="task-item card" @click="showTaskDetail(task)">
+            <view class="task-info">
+              <text class="task-name">{{ task.name }}</text>
+              <text class="task-meta">
+                <text class="task-status" :class="getStatusClass(task.status)">{{ getStatusText(task.status) }}</text>
+                <text class="task-expire"> | 过期: {{ formatTime(task.expire_time) }}</text>
+              </text>
+            </view>
+            <view class="task-points">+{{ task.points }}</view>
+          </view>
+        </view>
+        <view v-else class="empty-tip">今日暂无任务</view>
       </view>
 
       <view v-if="showRecords" class="record-section">
@@ -57,6 +75,43 @@
             </text>
           </view>
           <view v-if="childOverview.records.length === 0" class="empty-tip">暂无记录</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Task Detail Modal -->
+    <view v-if="showTaskModal" class="modal-mask" @click="showTaskModal = false">
+      <view class="modal-content card" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">任务详情</text>
+          <view class="modal-close" @click="showTaskModal = false">✕</view>
+        </view>
+        <view v-if="selectedTask" class="task-detail">
+          <view class="detail-row">
+            <text class="detail-label">任务名称</text>
+            <text class="detail-value">{{ selectedTask.name }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">任务描述</text>
+            <text class="detail-value">{{ selectedTask.description || '无' }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">奖励积分</text>
+            <text class="detail-value points">+{{ selectedTask.points }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">状态</text>
+            <text class="detail-value" :class="getStatusClass(selectedTask.status)">{{ getStatusText(selectedTask.status) }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">发布时间</text>
+            <text class="detail-value">{{ formatTime(selectedTask.publish_time) }}</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">过期时间</text>
+            <text class="detail-value">{{ formatTime(selectedTask.expire_time) }}</text>
+          </view>
+          <view v-if="selectedTask.status === 1" class="btn-complete" @click="completeTask(selectedTask)">完成任务</view>
         </view>
       </view>
     </view>
@@ -109,6 +164,12 @@ import { request } from '../../utils/request';
     // Child Overview Data
     const childOverview = ref<any>({ points: 0, records: [], parent_names: [] });
     const showRecords = ref(false);
+
+    // Task related
+    const showTasks = ref(false);
+    const todayTasks = ref<any[]>([]);
+    const showTaskModal = ref(false);
+    const selectedTask = ref<any>(null);
 
     // Parent Modal Data
     const showPointsModal = ref(false);
@@ -215,6 +276,72 @@ import { request } from '../../utils/request';
       const amount = parseInt(manualAmount.value);
       if (isNaN(amount)) return uni.showToast({ title: '请输入有效数字', icon: 'none' });
       submitPoints(amount, '手动调整');
+    };
+
+    // Task functions
+    const toggleTasks = async () => {
+      console.log('toggleTasks called, showTasks before:', showTasks.value);
+      showTasks.value = !showTasks.value;
+      showRecords.value = false; // Hide records when showing tasks
+      console.log('showTasks after:', showTasks.value);
+      if (showTasks.value && todayTasks.value.length === 0) {
+        await fetchTodayTasks();
+      }
+    };
+
+    const fetchTodayTasks = async () => {
+      try {
+        const res = await request({ url: '/child/tasks/today', method: 'GET' });
+        todayTasks.value = res || [];
+      } catch (e) {
+        console.error(e);
+        todayTasks.value = [];
+      }
+    };
+
+    const showTaskDetail = async (task: any) => {
+      selectedTask.value = task;
+      showTaskModal.value = true;
+    };
+
+    const completeTask = async (task: any) => {
+      try {
+        await request({
+          url: `/child/tasks/${task.id}/complete`,
+          method: 'PUT'
+        });
+        uni.showToast({ title: '任务完成，获得 ' + task.points + ' 积分', icon: 'success' });
+        showTaskModal.value = false;
+        // Refresh data
+        fetchTodayTasks();
+        fetchChildOverview();
+      } catch (e) {
+        uni.showToast({ title: '操作失败', icon: 'none' });
+      }
+    };
+
+    const getStatusText = (status: number) => {
+      switch (status) {
+        case 1: return '待办';
+        case 2: return '已完成';
+        case 3: return '已过期';
+        default: return '未知';
+      }
+    };
+
+    const getStatusClass = (status: number) => {
+      switch (status) {
+        case 1: return 'pending';
+        case 2: return 'completed';
+        case 3: return 'expired';
+        default: return '';
+      }
+    };
+
+    const formatTime = (timeStr: string) => {
+      if (!timeStr) return '';
+      const date = new Date(timeStr);
+      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
     };
 
 const bindChild = async () => {
@@ -503,5 +630,54 @@ const unbindChild = (child: any) => {
       font-size: 28rpx; font-weight: bold;
     }
   }
+}
+
+.task-section {
+  margin-top: 30rpx;
+  .task-list {
+    display: flex; flex-direction: column; gap: 20rpx;
+    .task-item {
+      padding: 24rpx; display: flex; justify-content: space-between; align-items: center;
+      .task-info {
+        flex: 1;
+        .task-name { font-size: 28rpx; color: #333; display: block; font-weight: bold; }
+        .task-meta { font-size: 22rpx; color: #999; display: block; margin-top: 4rpx; }
+        .task-status {
+          &.pending { color: #007AFF; }
+          &.completed { color: #4CD964; }
+          &.expired { color: #FF3B30; }
+        }
+      }
+      .task-points { font-size: 32rpx; font-weight: bold; color: #FF6B35; }
+    }
+  }
+}
+
+.task-detail {
+  .detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20rpx 0; border-bottom: 1px solid #f0f0f0;
+    .detail-label { font-size: 26rpx; color: #999; }
+    .detail-value { font-size: 28rpx; color: #333; font-weight: 500; }
+    .detail-value.points { color: #FF6B35; font-weight: bold; }
+    .detail-value.pending { color: #007AFF; }
+    .detail-value.completed { color: #4CD964; }
+    .detail-value.expired { color: #FF3B30; }
+  }
+  .btn-complete {
+    margin-top: 30rpx; background: #FF6B35; color: white; border-radius: 40rpx;
+    height: 80rpx; line-height: 80rpx; text-align: center;
+    font-size: 28rpx; font-weight: bold;
+  }
+}
+
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 30rpx;
+  .modal-title { font-size: 36rpx; font-weight: bold; color: #333; text-align: center; flex: 1; }
+  .modal-close { font-size: 36rpx; color: #999; padding: 10rpx; }
+}
+
+.empty-tip {
+  text-align: center; color: #999; font-size: 26rpx; padding: 40rpx;
 }
 </style>
