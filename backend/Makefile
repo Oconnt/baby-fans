@@ -32,6 +32,9 @@ clean:
 
 # Build Docker image
 docker-build:
+	docker build -t $(IMAGE_NAME):latest .
+
+docker-build-linux:
 	docker build --platform=linux/amd64 -t $(IMAGE_NAME):latest .
 
 # Run Docker container

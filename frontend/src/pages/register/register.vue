@@ -126,7 +126,7 @@ const goToLogin = () => {
     border: 2rpx solid #eee;
     border-radius: 16rpx;
     &.active {
-      border-color: var(--orange);
+      border-color: #FF6B35;
       background: #fff3e0;
     }
     .role-icon { font-size: 48rpx; margin-bottom: 10rpx; }
@@ -146,7 +146,7 @@ const goToLogin = () => {
 }
 
 .btn-primary {
-  background: var(--orange);
+  background: #FF6B35;
   color: white;
   border-radius: 40rpx;
   height: 80rpx;

@@ -247,7 +247,7 @@ const showBindInput = () => {
   color: white;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+  background: linear-gradient(135deg, #FF6B35, #FF8FAB, #C77DFF);
   box-shadow: 0 20rpx 50rpx rgba(255, 107, 53, 0.3);
 
   .bg-circle {
@@ -325,7 +325,7 @@ const showBindInput = () => {
       font-size: 40rpx;
       margin-right: 24rpx;
     }
-    .label { font-size: 30rpx; font-weight: 800; color: var(--text); }
+    .label { font-size: 30rpx; font-weight: 800; color: #2D2D2D; }
   }
   .arrow { color: #DDD; font-weight: 900; }
 }
@@ -333,7 +333,7 @@ const showBindInput = () => {
 .action-area {
   padding: 40rpx 32rpx;
   .logout-btn {
-    background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+    background: linear-gradient(135deg, #FF6B35, #FF8FAB, #C77DFF);
     color: white;
     border-radius: 24rpx;
     font-weight: 800;

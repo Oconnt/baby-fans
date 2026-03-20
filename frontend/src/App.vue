@@ -12,9 +12,7 @@ onHide(() => {
 </script>
 
 <style lang="scss">
-/* 引入原有的精美字体 */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
-
+/* 字体 - 小程序不支持 Google Fonts，使用系统字体 */
 :root {
   --yellow: #FFD93D; --orange: #FF6B35; --pink: #FF8FAB; --purple: #C77DFF;
   --blue: #4CC9F0; --green: #52B788; --bg: #FFF9F0; --card: #FFFFFF;
@@ -23,16 +21,16 @@ onHide(() => {
 
 /* 全局基础样式 - 恢复之前的氛围 */
 page {
-  font-family: 'Nunito', 'PingFang SC', sans-serif;
+  font-family: 'PingFang SC', 'Helvetica Neue', sans-serif;
   background: linear-gradient(135deg, #FFF9F0 0%, #FFF0F5 50%, #F0F5FF 100%);
   min-height: 100vh;
-  color: var(--text);
+  color: #2D2D2D;
 }
 
 /* 原有的通用卡片样式 */
 .card {
   background: white;
-  border-radius: var(--radius);
+  border-radius: 24px;
   padding: 15px;
   margin: 0 16px 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
@@ -41,7 +39,7 @@ page {
 
 .btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, var(--orange), var(--pink));
+  background: linear-gradient(135deg, #FF6B35, #FF8FAB);
   color: white;
   border: none;
   border-radius: 14px;
@@ -62,6 +60,7 @@ page {
 
 /* 标题字体 */
 .fredoka {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'PingFang SC', 'Helvetica Neue', cursive;
+  font-weight: 900;
 }
 </style>

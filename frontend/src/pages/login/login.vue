@@ -81,8 +81,11 @@ const handleCodeLogin = async () => {
 
 const handleWechatLogin = () => {
   uni.login({
-    provider: 'weixin',
     success: async (loginRes) => {
+      if (!loginRes || !loginRes.code) {
+        uni.showToast({ title: '微信登录失败', icon: 'none' });
+        return;
+      }
       try {
         const res = await request({
           url: '/api/v1/auth/wechat/login',
@@ -107,6 +110,10 @@ const handleWechatLogin = () => {
       } catch (e) {
         uni.showToast({ title: '微信授权失败', icon: 'none' });
       }
+    },
+    fail: (err) => {
+      console.error('微信登录失败', err);
+      uni.showToast({ title: '微信登录失败', icon: 'none' });
     }
   });
 };
@@ -149,7 +156,8 @@ const goToRegister = () => {
   width: 100%;
   margin: 0;
   padding: 60rpx 48rpx;
-  color: var(--text);
+  background: #FFFFFF;
+  color: #2D2D2D;
   border-radius: 48rpx;
   box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.15);
 
@@ -157,7 +165,7 @@ const goToRegister = () => {
     display: block;
     text-align: center;
     font-size: 28rpx;
-    color: var(--text2);
+    color: #888888;
     font-weight: 800;
     margin-bottom: 40rpx;
   }
@@ -170,8 +178,9 @@ const goToRegister = () => {
     margin-bottom: 40rpx;
     text-align: center;
     font-size: 48rpx;
-    font-family: 'Fredoka One';
-    color: var(--orange);
+    font-family: 'PingFang SC', 'Helvetica Neue', cursive;
+    font-weight: 900;
+    color: #FF6B35;
   }
 
   .divider {
@@ -209,8 +218,8 @@ const goToRegister = () => {
       font-weight: 800;
       padding: 6rpx 16rpx;
       border-radius: 10rpx;
-      &.parent { color: var(--purple); background: #F3E5F5; }
-      &.child { color: var(--orange); background: #FFF3E0; }
+      &.parent { color: #C77DFF; background: #F3E5F5; }
+      &.child { color: #FF6B35; background: #FFF3E0; }
     }
   }
 
