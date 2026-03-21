@@ -22,7 +22,7 @@ FROM alpine:latest
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata wget
 
 # Copy binary from builder
 COPY --from=builder /baby-fans /baby-fans
@@ -32,6 +32,9 @@ RUN chmod +x /baby-fans
 
 # Create necessary directories
 RUN mkdir -p /app/storage/uploads /app/config
+
+# Copy default config if etc directory is mounted
+# Note: config should be mounted at /app/config
 
 # Expose port
 EXPOSE 18081

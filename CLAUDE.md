@@ -19,20 +19,28 @@ Baby-Fans is a full-stack parent-child points management application (家长积�
 # Start both backend and frontend (H5 mode)
 ./start.sh
 
-# Start backend only
-cd backend && go run cmd/server/main.go
+# Backend commands (from backend/ directory)
+make dev          # Run in development mode
+make run          # Build and run
+make build        # Build binary
+make test         # Run tests
 
-# Start frontend only (H5 mode)
-cd frontend && npm run dev:h5
+# Start backend only (alternative)
+cd backend && go run ./cmd/server
 
-# Build frontend for WeChat Mini Program
-cd frontend && npm run dev:mp-weixin
+# Frontend commands (from frontend/ directory)
+npm run dev:h5           # H5 development mode
+npm run dev:mp-weixin    # WeChat Mini Program
 
 # Run backend tests
 cd backend && go test ./...
 
 # Run specific test
 cd backend && go test -v ./internal/service/...
+
+# Docker commands (from backend/)
+make docker-build        # Build Docker image
+make docker-compose-up   # Start with docker-compose
 ```
 
 ## Architecture
@@ -76,6 +84,7 @@ Authentication uses JWT tokens passed in Authorization header:
 - Child-only: `/child/*` (requires child role)
 
 Database file: `backend/baby-fans.db`
+Config file: `backend/config/config.yaml` (environment variables can override, e.g., `SERVER_PORT`, `JWT_SECRET`)
 
 ## Data Models
 

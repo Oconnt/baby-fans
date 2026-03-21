@@ -36,7 +36,7 @@ make docker-compose-up
 
 ## 配置
 
-配置文件位于 `config/config.yaml`，支持以下配置项：
+配置文件位于 `etc/config.yaml`，支持以下配置项：
 
 ```yaml
 server:
@@ -72,6 +72,7 @@ export JWT_SECRET=your_secret
 | `make run` | 编译并运行 |
 | `make dev` | 开发模式运行 |
 | `make test` | 运行测试 |
+| `make migrate` | 运行数据库迁移 |
 | `make clean` | 清理构建产物 |
 | `make docker-build` | 构建 Docker 镜像 |
 | `make docker-run` | 运行 Docker 容器 |
@@ -93,7 +94,8 @@ backend/
 │   └── server/
 │       └── main.go          # 入口文件
 ├── config/
-│   ├── config.go            # 配置加载
+│   └── config.go            # 配置加载
+├── etc/
 │   └── config.yaml         # 配置文件
 ├── internal/
 │   ├── api/
@@ -103,6 +105,8 @@ backend/
 │   ├── model/              # 数据模型
 │   ├── repository/         # 数据库操作
 │   └── service/           # 业务逻辑
+├── scripts/
+│   └── migrate.go          # 数据库迁移脚本
 ├── storage/                # 文件存储
 ├── Dockerfile
 ├── Makefile

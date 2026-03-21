@@ -39,7 +39,9 @@ func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config") // Relative to where you run the binary (backend dir)
+	viper.AddConfigPath("./etc")    // For etc directory
 	viper.AddConfigPath("../config")
+	viper.AddConfigPath("../etc")
 
 	// Allow overriding via environment variables (e.g., SERVER_PORT)
 	viper.AutomaticEnv()

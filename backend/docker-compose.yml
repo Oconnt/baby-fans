@@ -10,7 +10,7 @@ services:
       - "18081:18081"
     volumes:
       - ./storage:/app/storage
-      - ./config:/app/config
+      - ./etc:/app/config
       - ./baby-fans.db:/app/baby-fans.db
     environment:
       - SERVER_PORT=18081
