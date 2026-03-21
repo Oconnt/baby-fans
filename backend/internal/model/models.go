@@ -15,7 +15,7 @@ const (
 
 type User struct {
 	ID        uint           `gorm:"primaryKey" json:"id"`
-	Name      string         `gorm:"uniqueIndex;not null" json:"name"`
+	Name      string         `gorm:"type:varchar(191);uniqueIndex;not null" json:"name"`
 	Role      Role           `gorm:"not null" json:"role"`
 	Password  string         `json:"password"`
 	LoginCode string         `json:"login_code"`
@@ -33,7 +33,7 @@ type UserBinding struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	ParentID  uint      `gorm:"index" json:"parent_id"`
 	ChildID   uint      `gorm:"index" json:"child_id"`
-	BindCode  string    `gorm:"uniqueIndex" json:"bind_code"`
+	BindCode  string    `gorm:"type:varchar(64);uniqueIndex" json:"bind_code"`
 	Status    string    `gorm:"default:'pending'" json:"status"` // pending, accepted
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
