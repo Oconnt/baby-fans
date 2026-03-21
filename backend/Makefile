@@ -1,4 +1,4 @@
-.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-stop docker-logs docker-compose-up docker-compose-down docker-shell docker-push migrate
+.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-stop docker-logs docker-compose-up docker-compose-down docker-shell docker-push migrate docker-migrate
 
 # Build variables
 BINARY_NAME=baby-fans
@@ -26,9 +26,13 @@ dev:
 test:
 	go test -v ./...
 
-# Run database migration
+# Run database migration (requires local Go installation)
 migrate:
 	go run ./scripts/migrate.go
+
+# Run database migration in Docker container
+docker-migrate:
+	docker run --rm -v $(shell pwd)/etc:/app/config -v $(shell pwd)/baby-fans.db:/app/baby-fans.db -w /app golang:1.25-alpine go run ./scripts/migrate.go
 
 # Clean build artifacts
 clean:
