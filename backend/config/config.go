@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -20,7 +21,30 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
-	DSN string `mapstructure:"dsn"`
+	Type     string `mapstructure:"type"`     // mysql or sqlite
+	Host     string `mapstructure:"host"`     // MySQL host
+	Port     int    `mapstructure:"port"`     // MySQL port
+	Username string `mapstructure:"username"` // MySQL username
+	Password string `mapstructure:"password"` // MySQL password
+	Name     string `mapstructure:"name"`     // MySQL database name
+	DSN      string `mapstructure:"dsn"`      // Custom DSN (overrides other settings)
+}
+
+// GetMySQLDSN returns MySQL DSN based on config
+func (d *DBConfig) GetMySQLDSN() string {
+	if d.DSN != "" {
+		return d.DSN
+	}
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		d.Username, d.Password, d.Host, d.Port, d.Name)
+}
+
+// GetSQLiteDSN returns SQLite DSN
+func (d *DBConfig) GetSQLiteDSN() string {
+	if d.DSN != "" {
+		return d.DSN
+	}
+	return "baby-fans.db"
 }
 
 type WeChatConfig struct {
@@ -51,6 +75,11 @@ func LoadConfig() {
 	viper.SetDefault("server.port", "18081")
 	viper.SetDefault("jwt.secret", "super_secret_baby_fans_key")
 	viper.SetDefault("jwt.expire", 24)
+	viper.SetDefault("db.type", "sqlite")
+	viper.SetDefault("db.host", "localhost")
+	viper.SetDefault("db.port", 3306)
+	viper.SetDefault("db.username", "root")
+	viper.SetDefault("db.name", "baby_fans")
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Warning: Error reading config file, using defaults. Error: %v", err)

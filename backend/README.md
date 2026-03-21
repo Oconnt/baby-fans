@@ -6,7 +6,7 @@
 
 - Go 1.25
 - Gin Web Framework
-- SQLite Database
+- MySQL 8.0 / SQLite (备用)
 - JWT Authentication
 
 ## 快速开始
@@ -21,22 +21,19 @@ make dev
 make run
 ```
 
-### Docker 运行
+### Docker 运行（推荐）
 
 ```bash
-# 构建 Docker 镜像
-make docker-build
-
-# 运行容器
-make docker-run
-
-# 使用 docker-compose
+# 使用 docker-compose (带 MySQL)
 make docker-compose-up
+
+# 或一键启动 (自动创建 MySQL 容器)
+make docker-run-mysql
 ```
 
 ## 配置
 
-配置文件位于 `etc/config.yaml`，支持以下配置项：
+配置文件位于 `etc/config.yaml`：
 
 ```yaml
 server:
@@ -44,11 +41,16 @@ server:
   mode: "release"
 
 db:
-  dsn: "baby-fans.db"
+  type: "mysql"           # mysql 或 sqlite
+  host: "baby-fans-db"    # MySQL 容器名
+  port: 3306
+  username: "root"
+  password: "baby_fans_password"
+  name: "baby_fans"
 
 wechat:
-  app_id: "your_app_id"
-  app_secret: "your_app_secret"
+  app_id: ""
+  app_secret: ""
 
 jwt:
   secret: "your_jwt_secret"
@@ -57,11 +59,12 @@ jwt:
 
 ### 环境变量
 
-可以通过环境变量覆盖配置：
+可通过环境变量覆盖配置：
 
 ```bash
-export SERVER_PORT=18081
-export JWT_SECRET=your_secret
+export DB_TYPE=mysql
+export DB_HOST=baby-fans-db
+export DB_PASSWORD=your_password
 ```
 
 ## Makefile 命令
@@ -75,41 +78,23 @@ export JWT_SECRET=your_secret
 | `make migrate` | 运行数据库迁移 |
 | `make clean` | 清理构建产物 |
 | `make docker-build` | 构建 Docker 镜像 |
-| `make docker-run` | 运行 Docker 容器 |
-| `make docker-stop` | 停止 Docker 容器 |
-| `make docker-logs` | 查看容器日志 |
+| `make docker-run` | 运行容器 (SQLite 模式) |
+| `make docker-run-mysql` | 运行容器 + MySQL (一键启动) |
+| `make docker-stop` | 停止所有容器 |
+| `make docker-logs` | 查看日志 |
 | `make docker-compose-up` | 使用 docker-compose 启动 |
 | `make docker-compose-down` | 使用 docker-compose 停止 |
-| `make docker-shell` | 进入容器 shell |
+| `make docker-shell` | 进入后端容器 |
+| `make docker-db-shell` | 进入 MySQL 容器 |
+
+## 架构说明
+
+- **docker-compose**: 推荐的生产部署方式，MySQL 作为独立容器
+- **docker-run-mysql**: 一键启动，自动创建 MySQL 容器和网络
+- **docker-run**: 独立运行，使用内置 SQLite（适合开发调试）
+
+迁移脚本是幂等的，可安全重复执行。
 
 ## API 端口
 
 默认端口：`18081`
-
-## 目录结构
-
-```
-backend/
-├── cmd/
-│   └── server/
-│       └── main.go          # 入口文件
-├── config/
-│   └── config.go            # 配置加载
-├── etc/
-│   └── config.yaml         # 配置文件
-├── internal/
-│   ├── api/
-│   │   ├── handler/        # HTTP 处理器
-│   │   ├── middleware/     # 中间件
-│   │   └── router.go       # 路由配置
-│   ├── model/              # 数据模型
-│   ├── repository/         # 数据库操作
-│   └── service/           # 业务逻辑
-├── scripts/
-│   └── migrate.go          # 数据库迁移脚本
-├── storage/                # 文件存储
-├── Dockerfile
-├── Makefile
-├── docker-compose.yml
-└── go.mod
-```

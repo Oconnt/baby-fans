@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  db:
+    image: mysql:8.0
+    container_name: baby-fans-db
+    environment:
+      MYSQL_ROOT_PASSWORD: baby_fans_password
+      MYSQL_DATABASE: baby_fans
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pbaby_fans_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
   backend:
     build:
       context: .
@@ -10,11 +26,12 @@ services:
       - "18081:18081"
     volumes:
       - ./storage:/app/storage
-      - ./etc:/app/config
-      - ./baby-fans.db:/app/baby-fans.db
     environment:
       - SERVER_PORT=18081
       - SERVER_MODE=release
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:18081/health"]
@@ -22,3 +39,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
+
+volumes:
+  mysql_data:

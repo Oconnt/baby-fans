@@ -1,0 +1,19 @@
+server:
+  port: "18081"
+  mode: "release"
+
+db:
+  type: "mysql"
+  host: "baby-fans-db"
+  port: 3306
+  username: "root"
+  password: "baby_fans_password"
+  name: "baby_fans"
+
+wechat:
+  app_id: ""
+  app_secret: ""
+
+jwt:
+  secret: "super_secret_baby_fans_key"
+  expire: 24
