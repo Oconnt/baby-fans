@@ -13,7 +13,11 @@
       "Bash(\"S:\\\\software\\\\mysql\\\\mysql-8.0.18-winx64\\\\bin\\\\mysql.exe\":*)",
       "Bash(powershell:*)",
       "Bash(true:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npx uni:*)",
+      "Bash(go build:*)"
     ]
   }
 }

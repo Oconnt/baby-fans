@@ -46,6 +46,11 @@ func SetupRouter() *gin.Engine {
 	pointsHandler := &handler.PointsHandler{Service: pointsService}
 	shopHandler := &handler.ShopHandler{Service: shopService}
 
+	// Health check
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+
 	// Public routes
 	r.POST("/login/face", authHandler.LoginFace)
 	r.GET("/login/code", authHandler.LoginCode)
