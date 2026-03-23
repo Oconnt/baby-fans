@@ -1,4 +1,6 @@
 baby-fans.db
 uploads/*
 !uploads/.gitkeep
+certs/*.crt
+certs/*.key
 

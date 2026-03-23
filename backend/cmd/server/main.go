@@ -30,7 +30,12 @@ func main() {
 	if port == "" {
 		port = "18081"
 	}
-	log.Printf("Starting server on port %s", port)
-	r.Run(":" + port)
+	certFile := "certs/server.crt"
+	keyFile := "certs/server.key"
+	log.Printf("Starting HTTPS server on port %s", port)
+	log.Printf("Certificate: %s, Key: %s", certFile, keyFile)
+	if err := r.RunTLS(":"+port, certFile, keyFile); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
 
