@@ -20,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /baby-fan
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o /migrate ./scripts/migrate.go
 
 # Production stage
-FROM crpi-7tr092vgmwfahhs5.cn-shenzhen.personal.cr.aliyuncs.com/oct-home/alpine:latest
+FROM --platform=linux/amd64 crpi-7tr092vgmwfahhs5.cn-shenzhen.personal.cr.aliyuncs.com/oct-home/alpine:latest
 
 WORKDIR /app
 
