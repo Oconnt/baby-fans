@@ -25,7 +25,7 @@ FROM alpine:latest
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata wget mysql-client
+RUN apk add --no-cache ca-certificates tzdata wget mysql-client curl
 
 # Copy binaries from builder
 COPY --from=builder /baby-fans /baby-fans
@@ -45,7 +45,7 @@ EXPOSE 18081
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider https://localhost:18081/health || exit 1
+  CMD curl -k -s -o /dev/null -w "%{http_code}" https://localhost:18081/health || exit 1
 
 # Run migration then start the application
 # MySQL will be tried first; if unavailable, falls back to SQLite
