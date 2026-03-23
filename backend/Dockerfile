@@ -35,7 +35,7 @@ COPY --from=builder /migrate /migrate
 RUN chmod +x /baby-fans /migrate
 
 # Create necessary directories
-RUN mkdir -p /app/storage/uploads /app/config /app/storage
+RUN mkdir -p /app/storage/uploads /app/config /app/storage /app/certs
 
 # Copy default config
 COPY etc/config.yaml /app/config/config.yaml
