@@ -26,6 +26,7 @@ services:
       - "18081:18081"
     volumes:
       - ./storage:/app/storage
+      - ./certs:/app/certs:ro
     environment:
       - SERVER_PORT=18081
       - SERVER_MODE=release
@@ -34,7 +35,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:18081/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "https://localhost:18081/health"]
       interval: 30s
       timeout: 3s
       retries: 3
