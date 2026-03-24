@@ -45,6 +45,7 @@ func main() {
 	m := &autocert.Manager{
 		Cache:      autocert.DirCache(certDir),
 		Email:      email,
+		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domain),
 	}
 
