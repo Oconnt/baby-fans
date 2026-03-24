@@ -49,10 +49,17 @@ func main() {
 		HostPolicy: autocert.HostWhitelist(domain),
 	}
 
-	// Start HTTP server on port 80 for ACME challenge
+	// Start HTTP server on port 80 for ACME challenge and health check
 	go func() {
-		log.Printf("HTTP server for ACME challenge on port 80")
-		if err := http.ListenAndServe(":80", m.HTTPHandler(nil)); err != nil {
+		httpMux := http.NewServeMux()
+		httpMux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK"))
+		})
+		// Chain ACME handler for challenges
+		httpMux.HandleFunc("/.well-known/acme-challenge/", m.HTTPHandler(nil).ServeHTTP)
+		log.Printf("HTTP server for ACME challenge and health on port 80")
+		if err := http.ListenAndServe(":80", httpMux); err != nil {
 			log.Printf("ACME HTTP server error: %v", err)
 		}
 	}()
