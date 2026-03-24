@@ -1,6 +1,9 @@
 server:
   port: "18081"
   mode: "release"
+  domain: "occont.asia"
+  cert_dir: "certs"
+  email: "admin@occont.asia"
 
 db:
   type: "mysql"

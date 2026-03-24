@@ -2,12 +2,15 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"time"
 
 	"baby-fans/config"
 	"baby-fans/internal/api"
 	"baby-fans/internal/repository"
 	"baby-fans/internal/service"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
@@ -30,11 +33,38 @@ func main() {
 	if port == "" {
 		port = "18081"
 	}
-	certFile := "certs/server.crt"
-	keyFile := "certs/server.key"
-	log.Printf("Starting HTTPS server on port %s", port)
-	log.Printf("Certificate: %s, Key: %s", certFile, keyFile)
-	if err := r.RunTLS(":"+port, certFile, keyFile); err != nil {
+
+	domain := config.Cfg.Server.Domain
+	certDir := config.Cfg.Server.CertDir
+	email := config.Cfg.Server.Email
+
+	log.Printf("Starting HTTPS server on port %s with Let's Encrypt", port)
+	log.Printf("Domain: %s, CertDir: %s, Email: %s", domain, certDir, email)
+
+	// Setup autocert for Let's Encrypt
+	m := &autocert.Manager{
+		Cache:      autocert.DirCache(certDir),
+		Email:      email,
+		HostPolicy: autocert.HostWhitelist(domain),
+	}
+
+	// Start HTTP server on port 80 for ACME challenge
+	go func() {
+		log.Printf("HTTP server for ACME challenge on port 80")
+		if err := http.ListenAndServe(":80", m.HTTPHandler(nil)); err != nil {
+			log.Printf("ACME HTTP server error: %v", err)
+		}
+	}()
+
+	// Start HTTPS server with Let's Encrypt certificates
+	tlsConfig := m.TLSConfig()
+	tlsConfig.MinVersion = 0 // Allow default
+	srv := &http.Server{
+		Addr:      ":" + port,
+		Handler:   r,
+		TLSConfig: tlsConfig,
+	}
+	if err := srv.ListenAndServeTLS("", ""); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

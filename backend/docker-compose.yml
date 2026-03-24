@@ -24,9 +24,10 @@ services:
     container_name: baby-fans
     ports:
       - "18081:18081"
+      - "80:80"
     volumes:
       - ./storage:/app/storage
-      - ./certs:/app/certs:ro
+      - ./certs:/app/certs
     environment:
       - SERVER_PORT=18081
       - SERVER_MODE=release

@@ -23,12 +23,6 @@
         <text>微信一键登录</text>
       </button>
 
-      <view class="demo-hints">
-        <text class="hint-label">体验账号:</text>
-        <text class="hint-btn parent" @click="loginCode = '888888'">家长端</text>
-        <text class="hint-btn child" @click="loginCode = '666666'">孩子端</text>
-      </view>
-
       <view class="register-hint">
         <text class="register-btn" @click="goToRegister">还没有账号？点击注册</text>
       </view>
@@ -204,23 +198,6 @@ const goToRegister = () => {
     padding: 10rpx 0;
     &::after { border: none; }
     .icon { margin-right: 12rpx; font-size: 32rpx; }
-  }
-
-  .demo-hints {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20rpx;
-    margin-top: 50rpx;
-    .hint-label { font-size: 20rpx; color: #CCC; }
-    .hint-btn {
-      font-size: 20rpx;
-      font-weight: 800;
-      padding: 6rpx 16rpx;
-      border-radius: 10rpx;
-      &.parent { color: #C77DFF; background: #F3E5F5; }
-      &.child { color: #FF6B35; background: #FFF3E0; }
-    }
   }
 
   .register-hint {

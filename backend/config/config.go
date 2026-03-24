@@ -16,8 +16,11 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port string `mapstructure:"port"`
-	Mode string `mapstructure:"mode"`
+	Port     string `mapstructure:"port"`
+	Mode     string `mapstructure:"mode"`
+	Domain   string `mapstructure:"domain"`
+	CertDir  string `mapstructure:"cert_dir"`
+	Email    string `mapstructure:"email"`
 }
 
 type DBConfig struct {
@@ -73,6 +76,9 @@ func LoadConfig() {
 
 	// Default values
 	viper.SetDefault("server.port", "18081")
+	viper.SetDefault("server.domain", "occont.asia")
+	viper.SetDefault("server.cert_dir", "certs")
+	viper.SetDefault("server.email", "admin@occont.asia")
 	viper.SetDefault("jwt.secret", "super_secret_baby_fans_key")
 	viper.SetDefault("jwt.expire", 24)
 	viper.SetDefault("db.type", "sqlite")

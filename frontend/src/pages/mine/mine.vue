@@ -140,7 +140,7 @@ const changeAvatar = () => {
         // Upload file
         const uploadRes = await new Promise((resolve, reject) => {
           uni.uploadFile({
-            url: 'http://47.82.223.75:18081' + url,
+            url: 'https://occont.asia:18081' + url,
             filePath: tempFilePath,
             name: 'file',
             header: {
