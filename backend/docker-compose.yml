@@ -24,7 +24,6 @@ services:
     container_name: baby-fans
     ports:
       - "18081:18081"
-      - "80:80"
     volumes:
       - ./storage:/app/storage
       - ./certs:/app/certs
@@ -36,11 +35,30 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:80/health"]
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:18081/health"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 10s
+
+  nginx:
+    image: nginx:alpine
+    container_name: baby-fans-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
 volumes:
   mysql_data:

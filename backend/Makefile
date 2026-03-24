@@ -1,4 +1,4 @@
-.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-run-mysql docker-stop docker-logs docker-compose-up docker-compose-down docker-compose-restart docker-shell docker-push migrate
+.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-run-mysql docker-stop docker-logs docker-compose-up docker-compose-down docker-compose-restart docker-shell docker-push migrate nginx-up nginx-down nginx-logs nginx-restart
 
 # Build variables
 BINARY_NAME=baby-fans
@@ -108,3 +108,16 @@ backend-start:
 # Stop backend only
 backend-stop:
 	docker-compose stop backend && docker-compose rm backend
+
+# Nginx commands
+nginx-up:
+	docker-compose up -d nginx
+
+nginx-down:
+	docker-compose stop nginx && docker-compose rm nginx
+
+nginx-logs:
+	docker logs -f baby-fans-nginx
+
+nginx-restart:
+	docker-compose restart nginx
