@@ -99,7 +99,7 @@ docker-compose-down:
 
 # Restart backend only (keeps database running)
 backend-restart:
-	docker-compose stop backend && docker-compose rm backend && docker-compose up -d --no-deps backend
+	docker-compose restart backend
 
 # Start backend only (keeps database running)
 backend-start:

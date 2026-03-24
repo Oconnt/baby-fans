@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { request } from '../../utils/request';
+import { request, BASE_URL } from '../../utils/request';
 
 const userInfo = ref<any>({});
 const avatarRefreshKey = ref(0);
@@ -140,7 +140,7 @@ const changeAvatar = () => {
         // Upload file
         const uploadRes = await new Promise((resolve, reject) => {
           uni.uploadFile({
-            url: 'https://occont.asia:18081' + url,
+            url: BASE_URL + url,
             filePath: tempFilePath,
             name: 'file',
             header: {

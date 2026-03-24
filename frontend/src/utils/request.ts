@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_APP_API_BASE_URL || 'https://occont.asia:18081';
+export const BASE_URL = import.meta.env.VITE_APP_API_BASE_URL || 'https://occont.asia';
 
 export interface RequestOptions {
   url: string;
