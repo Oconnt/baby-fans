@@ -98,25 +98,13 @@ docker-compose-down:
 	docker-compose down
 
 # Restart backend only (keeps database running)
-docker-compose-restart:
-	docker-compose stop backend && docker-compose up -d --no-deps backend
+backend-restart:
+	docker-compose stop backend && docker-compose rm backend && docker-compose up -d --no-deps backend
 
 # Start backend only (keeps database running)
-docker-compose-start:
+backend-start:
 	docker-compose up -d --no-deps backend
 
 # Stop backend only
-docker-compose-stop:
-	docker-compose stop backend
-
-# Shell into backend container
-docker-shell:
-	docker exec -it $(CONTAINER_NAME) /bin/sh
-
-# Shell into database container
-docker-db-shell:
-	docker exec -it $(DB_CONTAINER_NAME) mysql -u root -pbaby_fans_password baby_fans
-
-# Push Docker image to registry
-docker-push:
-	docker push $(IMAGE_NAME):latest
+backend-stop:
+	docker-compose stop backend && docker-compose rm backend
