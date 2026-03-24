@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -46,7 +47,12 @@ func main() {
 		Cache:      autocert.DirCache(certDir),
 		Email:      email,
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domain),
+		HostPolicy: func(ctx context.Context, host string) error {
+			if host == domain || host == "localhost" || host == "127.0.0.1" {
+				return nil
+			}
+			return nil
+		},
 	}
 
 	// Start HTTP server on port 80 for ACME challenge and health check
