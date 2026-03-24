@@ -1,4 +1,4 @@
-.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-run-mysql docker-stop docker-logs docker-compose-up docker-compose-down docker-shell docker-push migrate
+.PHONY: build run dev test clean docker-build docker-build-linux docker-run docker-run-mysql docker-stop docker-logs docker-compose-up docker-compose-down docker-compose-restart docker-shell docker-push migrate
 
 # Build variables
 BINARY_NAME=baby-fans
@@ -93,9 +93,21 @@ docker-logs:
 docker-compose-up:
 	docker-compose up -d
 
-# Docker compose down
+# Docker compose down (all services)
 docker-compose-down:
 	docker-compose down
+
+# Restart backend only (keeps database running)
+docker-compose-restart:
+	docker-compose stop backend && docker-compose up -d --no-deps backend
+
+# Start backend only (keeps database running)
+docker-compose-start:
+	docker-compose up -d --no-deps backend
+
+# Stop backend only
+docker-compose-stop:
+	docker-compose stop backend
 
 # Shell into backend container
 docker-shell:

@@ -13,14 +13,16 @@ type Config struct {
 	DB     DBConfig     `mapstructure:"db"`
 	WeChat WeChatConfig `mapstructure:"wechat"`
 	JWT    JWTConfig    `mapstructure:"jwt"`
+	Aliyun AliyunConfig `mapstructure:"aliyun"`
 }
 
 type ServerConfig struct {
-	Port     string `mapstructure:"port"`
-	Mode     string `mapstructure:"mode"`
-	Domain   string `mapstructure:"domain"`
-	CertDir  string `mapstructure:"cert_dir"`
-	Email    string `mapstructure:"email"`
+	Port        string `mapstructure:"port"`
+	Mode        string `mapstructure:"mode"`
+	Domain      string `mapstructure:"domain"`
+	CertDir     string `mapstructure:"cert_dir"`
+	Email       string `mapstructure:"email"`
+	DNSProvider string `mapstructure:"dns_provider"` // aliyun, cloudflare, etc.
 }
 
 type DBConfig struct {
@@ -58,6 +60,11 @@ type WeChatConfig struct {
 type JWTConfig struct {
 	Secret string `mapstructure:"secret"`
 	Expire int    `mapstructure:"expire"` // in hours
+}
+
+type AliyunConfig struct {
+	AccessKeyID     string `mapstructure:"access_key_id"`
+	AccessKeySecret string `mapstructure:"access_key_secret"`
 }
 
 var Cfg *Config

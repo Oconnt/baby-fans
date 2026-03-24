@@ -42,29 +42,25 @@ func main() {
 	log.Printf("Starting HTTPS server on port %s with Let's Encrypt", port)
 	log.Printf("Domain: %s, CertDir: %s, Email: %s", domain, certDir, email)
 
-	// Setup autocert for Let's Encrypt
+	// Setup autocert for Let's Encrypt HTTP-01 challenge
 	m := &autocert.Manager{
 		Cache:      autocert.DirCache(certDir),
 		Email:      email,
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: func(ctx context.Context, host string) error {
-			if host == domain || host == "localhost" || host == "127.0.0.1" {
-				return nil
-			}
-			return nil
+			return nil // Allow all hosts for certificate generation
 		},
 	}
 
-	// Start HTTP server on port 80 for ACME challenge and health check
+	// Start HTTP server on port 80 for ACME HTTP-01 challenge and health check
 	go func() {
 		httpMux := http.NewServeMux()
 		httpMux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK"))
 		})
-		// Chain ACME handler for challenges
 		httpMux.HandleFunc("/.well-known/acme-challenge/", m.HTTPHandler(nil).ServeHTTP)
-		log.Printf("HTTP server for ACME challenge and health on port 80")
+		log.Printf("HTTP server for ACME HTTP-01 challenge on port 80")
 		if err := http.ListenAndServe(":80", httpMux); err != nil {
 			log.Printf("ACME HTTP server error: %v", err)
 		}
@@ -72,7 +68,6 @@ func main() {
 
 	// Start HTTPS server with Let's Encrypt certificates
 	tlsConfig := m.TLSConfig()
-	tlsConfig.MinVersion = 0 // Allow default
 	srv := &http.Server{
 		Addr:      ":" + port,
 		Handler:   r,
@@ -82,4 +77,3 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
-
