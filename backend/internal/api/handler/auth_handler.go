@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"baby-fans/config"
 	"baby-fans/internal/model"
 	"baby-fans/internal/repository"
 	"baby-fans/internal/service"
@@ -219,7 +220,7 @@ func (h *AuthHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	avatarURL := "http://localhost:18081/storage/uploads/" + filename
+	avatarURL := "https://" + config.Cfg.Server.Domain + "/storage/uploads/" + filename
 	user.AvatarURL = avatarURL
 	repository.DB.Save(&user)
 

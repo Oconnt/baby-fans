@@ -78,7 +78,11 @@ const avatarUrl = computed(() => {
   avatarRefreshKey.value; // dependency
   if (!userInfo.value.avatar_url) return '/static/logo.png';
   // Add timestamp to force refresh
-  const url = userInfo.value.avatar_url;
+  let url = userInfo.value.avatar_url;
+  // Prepend BASE_URL if it's a relative path (doesn't start with http)
+  if (!url.startsWith('http')) {
+    url = BASE_URL + url;
+  }
   const separator = url.includes('?') ? '&' : '?';
   return url + separator + 't=' + Date.now();
 });
