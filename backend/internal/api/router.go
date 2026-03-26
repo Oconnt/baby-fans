@@ -9,7 +9,8 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
-	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
 
 	// 优化的 CORS 中间件
 	r.Use(func(c *gin.Context) {
@@ -29,6 +30,11 @@ func SetupRouter() *gin.Engine {
 		}
 		c.Next()
 	})
+
+	// JSON 日志中间件（输出到 stdout，供 Docker log 收集）
+	r.Use(middleware.JSONLogger())
+	// Panic recovery 中间件（带日志输出）
+	r.Use(middleware.RecoveryWithLogger())
 
 	// 1. 先注册具体的静态资源路径
 	r.Static("/storage/uploads", "./storage/uploads")

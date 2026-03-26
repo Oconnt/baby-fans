@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,7 +18,11 @@ type ShopHandler struct {
 
 func (h *ShopHandler) GetItems(c *gin.Context) {
 	var items []model.ShopItem
-	repository.DB.Find(&items)
+	if err := repository.DB.Find(&items).Error; err != nil {
+		log.Printf("[GetItems] query error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, items)
 }
 
@@ -30,13 +35,18 @@ func (h *ShopHandler) SaveItem(c *gin.Context) {
 		Stock       int    `json:"stock"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("[SaveItem] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var item model.ShopItem
 	if input.ID > 0 {
-		repository.DB.First(&item, input.ID)
+		if err := repository.DB.First(&item, input.ID).Error; err != nil {
+			log.Printf("[SaveItem] first error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	item.Name = input.Name
@@ -44,7 +54,11 @@ func (h *ShopHandler) SaveItem(c *gin.Context) {
 	item.Price = input.Price
 	item.Stock = input.Stock
 
-	repository.DB.Save(&item)
+	if err := repository.DB.Save(&item).Error; err != nil {
+		log.Printf("[SaveItem] save error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, item)
 }
 
@@ -56,24 +70,34 @@ func (h *ShopHandler) UpdateStock(c *gin.Context) {
 		Stock int `json:"stock"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("[UpdateStock] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var item model.ShopItem
 	if err := repository.DB.First(&item, uint(id)).Error; err != nil {
+		log.Printf("[UpdateStock] first error: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "商品不存在"})
 		return
 	}
 
 	item.Stock = input.Stock
-	repository.DB.Save(&item)
+	if err := repository.DB.Save(&item).Error; err != nil {
+		log.Printf("[UpdateStock] save error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, item)
 }
 
 func (h *ShopHandler) DeleteItem(c *gin.Context) {
 	id := c.Param("id")
-	repository.DB.Delete(&model.ShopItem{}, id)
+	if err := repository.DB.Delete(&model.ShopItem{}, id).Error; err != nil {
+		log.Printf("[DeleteItem] delete error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "deleted"})
 }
 
@@ -82,13 +106,27 @@ func (h *ShopHandler) Exchange(c *gin.Context) {
 		ItemID uint `json:"item_id"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.Printf("[Exchange] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	userID := c.MustGet("userID").(uint)
+
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		log.Printf("[Exchange] userID not found in context")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
+		return
+	}
+	userID, ok := userIDVal.(uint)
+	if !ok {
+		log.Printf("[Exchange] userID invalid type: %T", userIDVal)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "userID has invalid type"})
+		return
+	}
 
 	err := h.Service.ExchangeItem(userID, input.ItemID)
 	if err != nil {
+		log.Printf("[Exchange] ExchangeItem error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -102,6 +140,7 @@ func (h *ShopHandler) Confirm(c *gin.Context) {
 
 	err := h.Service.ConfirmRedemption(uint(redemptionID))
 	if err != nil {
+		log.Printf("[Confirm] ConfirmRedemption error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -115,6 +154,7 @@ func (h *ShopHandler) Cancel(c *gin.Context) {
 
 	err := h.Service.CancelRedemption(uint(redemptionID))
 	if err != nil {
+		log.Printf("[Cancel] CancelRedemption error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -124,6 +164,10 @@ func (h *ShopHandler) Cancel(c *gin.Context) {
 
 func (h *ShopHandler) GetRedemptions(c *gin.Context) {
 	var redemptions []model.Redemption
-	repository.DB.Preload("User").Preload("Item").Order("created_at desc").Find(&redemptions)
+	if err := repository.DB.Preload("User").Preload("Item").Order("created_at desc").Find(&redemptions).Error; err != nil {
+		log.Printf("[GetRedemptions] query error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, redemptions)
 }
