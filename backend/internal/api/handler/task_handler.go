@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -27,6 +28,7 @@ func NewTaskHandler() *TaskHandler {
 func (h *TaskHandler) GetTaskTemplates(c *gin.Context) {
 	templates, err := h.TaskTemplateService.GetTemplates()
 	if err != nil {
+		log.Printf("[GetTaskTemplates] error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -37,10 +39,12 @@ func (h *TaskHandler) GetTaskTemplates(c *gin.Context) {
 func (h *TaskHandler) CreateTaskTemplate(c *gin.Context) {
 	var template model.TaskTemplate
 	if err := c.ShouldBindJSON(&template); err != nil {
+		log.Printf("[CreateTaskTemplate] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err := h.TaskTemplateService.CreateTemplate(&template); err != nil {
+		log.Printf("[CreateTaskTemplate] create error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -53,10 +57,12 @@ func (h *TaskHandler) DeleteTaskTemplate(c *gin.Context) {
 		ID uint `uri:"id" binding:"required"`
 	}
 	if err := c.ShouldBindUri(&id); err != nil {
+		log.Printf("[DeleteTaskTemplate] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err := h.TaskTemplateService.DeleteTemplate(id.ID); err != nil {
+		log.Printf("[DeleteTaskTemplate] delete error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -68,6 +74,7 @@ func (h *TaskHandler) GetParentTasks(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	tasks, err := h.TaskService.GetTasksByPublisher(userID)
 	if err != nil {
+		log.Printf("[GetParentTasks] error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -84,6 +91,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		ExpireTime  string `json:"expire_time" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[CreateTask] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -91,6 +99,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	publisherID := c.GetUint("user_id")
 	expireTime, err := time.Parse(time.RFC3339, req.ExpireTime)
 	if err != nil {
+		log.Printf("[CreateTask] parse time error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid expire_time format"})
 		return
 	}
@@ -107,6 +116,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	}
 
 	if err := h.TaskService.PublishTask(task); err != nil {
+		log.Printf("[CreateTask] publish error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -122,15 +132,18 @@ func (h *TaskHandler) UpdateTaskStatus(c *gin.Context) {
 		ID uint `uri:"id" binding:"required"`
 	}
 	if err := c.ShouldBindUri(&id); err != nil {
+		log.Printf("[UpdateTaskStatus] bind uri error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[UpdateTaskStatus] bind json error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.TaskService.UpdateTaskStatus(id.ID, req.Status); err != nil {
+		log.Printf("[UpdateTaskStatus] update error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -144,6 +157,7 @@ func (h *TaskHandler) GetTodayTasks(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	tasks, err := h.TaskService.GetTodayTasks(userID)
 	if err != nil {
+		log.Printf("[GetTodayTasks] error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -155,6 +169,7 @@ func (h *TaskHandler) GetChildTasks(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	tasks, err := h.TaskService.GetTasksByChild(userID)
 	if err != nil {
+		log.Printf("[GetChildTasks] error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -167,12 +182,14 @@ func (h *TaskHandler) GetTaskDetail(c *gin.Context) {
 		ID uint `uri:"id" binding:"required"`
 	}
 	if err := c.ShouldBindUri(&id); err != nil {
+		log.Printf("[GetTaskDetail] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	task, err := h.TaskService.GetTaskByID(id.ID)
 	if err != nil {
+		log.Printf("[GetTaskDetail] get error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -185,6 +202,7 @@ func (h *TaskHandler) CompleteTask(c *gin.Context) {
 		ID uint `uri:"id" binding:"required"`
 	}
 	if err := c.ShouldBindUri(&id); err != nil {
+		log.Printf("[CompleteTask] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -192,6 +210,7 @@ func (h *TaskHandler) CompleteTask(c *gin.Context) {
 	// Get task first to check ownership
 	task, err := h.TaskService.GetTaskByID(id.ID)
 	if err != nil {
+		log.Printf("[CompleteTask] get task error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -199,12 +218,14 @@ func (h *TaskHandler) CompleteTask(c *gin.Context) {
 	// Verify the task belongs to the current child
 	userID := c.GetUint("user_id")
 	if task.HandlerID != userID {
+		log.Printf("[CompleteTask] forbidden: task.HandlerID=%d userID=%d", task.HandlerID, userID)
 		c.JSON(http.StatusForbidden, gin.H{"error": "not authorized"})
 		return
 	}
 
 	// Update task status to completed
 	if err := h.TaskService.UpdateTaskStatus(id.ID, model.TaskCompleted); err != nil {
+		log.Printf("[CompleteTask] update status error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -212,6 +233,7 @@ func (h *TaskHandler) CompleteTask(c *gin.Context) {
 	// Award points to child
 	pointsService := &service.PointsService{}
 	if err := pointsService.UpdatePoints(task.HandlerID, task.Points, "完成任务: "+task.Name, task.PublisherID); err != nil {
+		log.Printf("[CompleteTask] award points error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

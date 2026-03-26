@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -25,6 +26,7 @@ type WechatLoginRequest struct {
 func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 	var req WechatLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[WeChatLogin] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -41,6 +43,7 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 		Get("https://api.weixin.qq.com/sns/jscode2session")
 
 	if err != nil {
+		log.Printf("[WeChatLogin] call WeChat API error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to call WeChat API"})
 		return
 	}
@@ -54,6 +57,7 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 	}
 
 	if err := json.Unmarshal(resp.Body(), &wxResp); err != nil {
+		log.Printf("[WeChatLogin] unmarshal error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse WeChat response"})
 		return
 	}
@@ -63,6 +67,7 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 		if config.Cfg == nil || config.Cfg.WeChat.AppID == "" {
 			wxResp.OpenID = "mock_openid_" + req.Code
 		} else {
+			log.Printf("[WeChatLogin] WeChat error: errcode=%d errmsg=%s", wxResp.Errcode, wxResp.Errmsg)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": wxResp.Errmsg})
 			return
 		}
@@ -88,7 +93,11 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 		if user.Name == "" {
 			user.Name = "User_" + wxResp.OpenID[:6]
 		}
-		repository.DB.Create(&user)
+		if err := repository.DB.Create(&user).Error; err != nil {
+			log.Printf("[WeChatLogin] create user error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+			return
+		}
 	}
 
 	// 3. Generate JWT
@@ -107,6 +116,7 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
+		log.Printf("[WeChatLogin] sign token error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
@@ -118,11 +128,23 @@ func (h *AuthHandler) WeChatLogin(c *gin.Context) {
 }
 
 func (h *AuthHandler) GenerateBindingCode(c *gin.Context) {
-	parentID := c.MustGet("userID").(uint)
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		log.Printf("[GenerateBindingCode] userID not found")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
+		return
+	}
+	parentID, ok := userIDVal.(uint)
+	if !ok {
+		log.Printf("[GenerateBindingCode] userID invalid type: %T", userIDVal)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "userID has invalid type"})
+		return
+	}
 
 	// Generate random 6 character hex code
 	bytes := make([]byte, 3)
 	if _, err := rand.Read(bytes); err != nil {
+		log.Printf("[GenerateBindingCode] rand.Read error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate code"})
 		return
 	}
@@ -135,6 +157,7 @@ func (h *AuthHandler) GenerateBindingCode(c *gin.Context) {
 	}
 
 	if err := repository.DB.Create(&binding).Error; err != nil {
+		log.Printf("[GenerateBindingCode] create binding error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save binding"})
 		return
 	}
@@ -143,17 +166,31 @@ func (h *AuthHandler) GenerateBindingCode(c *gin.Context) {
 }
 
 func (h *AuthHandler) AcceptBinding(c *gin.Context) {
-	childID := c.MustGet("userID").(uint)
+	userIDVal, exists := c.Get("userID")
+	if !exists {
+		log.Printf("[AcceptBinding] userID not found")
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "userID not found"})
+		return
+	}
+	childID, ok := userIDVal.(uint)
+	if !ok {
+		log.Printf("[AcceptBinding] userID invalid type: %T", userIDVal)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "userID has invalid type"})
+		return
+	}
+
 	var req struct {
 		BindCode string `json:"bind_code" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("[AcceptBinding] bind error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	var binding model.UserBinding
 	if err := repository.DB.Where("bind_code = ? AND status = ?", req.BindCode, "pending").First(&binding).Error; err != nil {
+		log.Printf("[AcceptBinding] binding not found: %s", req.BindCode)
 		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid or expired binding code"})
 		return
 	}
@@ -162,6 +199,7 @@ func (h *AuthHandler) AcceptBinding(c *gin.Context) {
 	binding.Status = "accepted"
 
 	if err := repository.DB.Save(&binding).Error; err != nil {
+		log.Printf("[AcceptBinding] save binding error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update binding"})
 		return
 	}
