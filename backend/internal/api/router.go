@@ -21,7 +21,7 @@ func SetupRouter() *gin.Engine {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, X-Request-ID")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
 
 		if c.Request.Method == "OPTIONS" {
@@ -58,10 +58,14 @@ func SetupRouter() *gin.Engine {
 	})
 
 	// Public routes
-	r.POST("/login/face", authHandler.LoginFace)
-	r.GET("/login/code", authHandler.LoginCode)
-	r.POST("/register", authHandler.Register)
-	r.POST("/api/v1/auth/wechat/login", authHandler.WeChatLogin)
+	public := r.Group("")
+	public.Use(middleware.IdempotencyMiddleware())
+	{
+		public.POST("/login/face", authHandler.LoginFace)
+		public.GET("/login/code", authHandler.LoginCode)
+		public.POST("/register", authHandler.Register)
+		public.POST("/api/v1/auth/wechat/login", authHandler.WeChatLogin)
+	}
 
 	// Global / Shop access for both
 	r.GET("/parent/items", shopHandler.GetItems)
@@ -69,6 +73,7 @@ func SetupRouter() *gin.Engine {
 	// Parent routes
 	parent := r.Group("/parent")
 	parent.Use(middleware.AuthMiddleware(model.RoleParent))
+	parent.Use(middleware.IdempotencyMiddleware())
 	{
 		parent.GET("/children", authHandler.GetChildren)
 		parent.POST("/children/bind", authHandler.BindChildByCode)
@@ -97,6 +102,7 @@ func SetupRouter() *gin.Engine {
 	// Child routes
 	child := r.Group("/child")
 	child.Use(middleware.AuthMiddleware(model.RoleChild))
+	child.Use(middleware.IdempotencyMiddleware())
 	{
 		child.GET("/overview", authHandler.GetOverview)
 		child.POST("/binding/accept", authHandler.AcceptBinding)
