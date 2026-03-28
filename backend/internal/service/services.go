@@ -183,9 +183,10 @@ func (s *ShopService) ExchangeItem(userID uint, itemID uint) error {
 
 		// Create points record
 		record := model.PointsRecord{
-			UserID: userID,
-			Amount: -item.Price,
-			Reason: "Exchange: " + item.Name,
+			UserID:     userID,
+			Amount:     -item.Price,
+			Reason:     "Exchange: " + item.Name,
+			OperatorID: userID,
 		}
 		return tx.Create(&record).Error
 	})
@@ -235,6 +236,7 @@ func (s *ShopService) CancelRedemption(redemptionID uint) error {
 				UserID:     redemption.UserID,
 				Amount:     redemption.Item.Price,
 				Reason:     "取消兑换: " + redemption.Item.Name,
+				OperatorID: redemption.UserID,
 			}
 			if err := tx.Create(&record).Error; err != nil {
 				return err
