@@ -19,6 +19,14 @@ services:
 
   backend:
     image: crpi-7tr092vgmwfahhs5.cn-shenzhen.personal.cr.aliyuncs.com/oct-home/baby-fans:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     container_name: baby-fans
     ports:
       - "18081:18081"

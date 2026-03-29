@@ -119,9 +119,6 @@ func (s *PointsService) UpdatePoints(userID uint, amount int, reason string, ope
 		}
 
 		user.Points += amount
-		if user.Points < 0 {
-			return errors.New("insufficient points")
-		}
 
 		if err := tx.Save(&user).Error; err != nil {
 			return err
