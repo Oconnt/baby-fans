@@ -35,10 +35,10 @@ COPY --from=builder /migrate /migrate
 RUN chmod +x /baby-fans /migrate
 
 # Create necessary directories
-RUN mkdir -p /app/storage/uploads /app/config /app/storage /app/certs
+RUN mkdir -p /app/storage/uploads /app/storage /app/certs
 
-# Copy default config
-COPY etc/config.yaml /app/config/config.yaml
+# Copy default config to mount point
+COPY etc/config.yaml /app/config.yaml
 
 # Expose port
 EXPOSE 18081
@@ -49,4 +49,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Run migration then start the application
 # MySQL will be tried first; if unavailable, falls back to SQLite
-CMD ["/bin/sh", "-c", "/migrate && /baby-fans"]
+# Config file can be mounted to /app/config.yaml or specified via -config flag
+CMD ["/bin/sh", "-c", "/migrate && /baby-fans -config /app/config.yaml"]

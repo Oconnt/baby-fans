@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"strings"
@@ -10,10 +11,18 @@ import (
 
 type Config struct {
 	Server ServerConfig `mapstructure:"server"`
+	App    AppConfig    `mapstructure:"app"`
 	DB     DBConfig     `mapstructure:"db"`
 	WeChat WeChatConfig `mapstructure:"wechat"`
 	JWT    JWTConfig    `mapstructure:"jwt"`
 	Aliyun AliyunConfig `mapstructure:"aliyun"`
+}
+
+type AppConfig struct {
+	Version     string `mapstructure:"version"`
+	BuildNumber string `mapstructure:"build_number"`
+	UpdateURL   string `mapstructure:"update_url"`
+	ForceUpdate bool   `mapstructure:"force_update"`
 }
 
 type ServerConfig struct {
@@ -68,14 +77,23 @@ type AliyunConfig struct {
 }
 
 var Cfg *Config
+var configFilePath string
+
+func init() {
+	flag.StringVar(&configFilePath, "config", "", "Path to config file")
+}
 
 func LoadConfig() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config") // Relative to where you run the binary (backend dir)
-	viper.AddConfigPath("./etc")    // For etc directory
-	viper.AddConfigPath("../config")
-	viper.AddConfigPath("../etc")
+	if configFilePath != "" {
+		viper.SetConfigFile(configFilePath)
+	} else {
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath("./config")
+		viper.AddConfigPath("./etc")
+		viper.AddConfigPath("../config")
+		viper.AddConfigPath("../etc")
+	}
 
 	// Allow overriding via environment variables (e.g., SERVER_PORT)
 	viper.AutomaticEnv()
@@ -86,6 +104,10 @@ func LoadConfig() {
 	viper.SetDefault("server.domain", "occont.asia")
 	viper.SetDefault("server.cert_dir", "certs")
 	viper.SetDefault("server.email", "admin@occont.asia")
+	viper.SetDefault("app.version", "1.0.0")
+	viper.SetDefault("app.build_number", "100")
+	viper.SetDefault("app.update_url", "")
+	viper.SetDefault("app.force_update", false)
 	viper.SetDefault("jwt.secret", "super_secret_baby_fans_key")
 	viper.SetDefault("jwt.expire", 24)
 	viper.SetDefault("db.type", "sqlite")
@@ -104,4 +126,20 @@ func LoadConfig() {
 	}
 
 	log.Println("Config loaded successfully")
+}
+
+// ReloadConfig reloads config from file without restart
+func ReloadConfig() error {
+	if err := viper.ReadInConfig(); err != nil {
+		return fmt.Errorf("failed to read config: %w", err)
+	}
+
+	newCfg := &Config{}
+	if err := viper.Unmarshal(newCfg); err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	Cfg = newCfg
+	log.Println("Config reloaded successfully")
+	return nil
 }

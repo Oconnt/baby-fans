@@ -5,6 +5,12 @@ server:
   cert_dir: "certs"
   email: "admin@occont.asia"
 
+app:
+  version: "1.0.0"
+  build_number: "100"
+  update_url: ""
+  force_update: false
+
 db:
   type: "mysql"
   host: "baby-fans-db"

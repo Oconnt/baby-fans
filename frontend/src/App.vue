@@ -1,14 +1,80 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
+import { onLaunch } from "@dcloudio/uni-app";
+import { request } from './utils/request';
+
+// App version - synced with manifest.json
+const APP_VERSION = '100';
+
 onLaunch(() => {
   console.log("App Launch");
+  // Check and apply pending update first
+  applyPendingUpdate();
+  checkForUpdate();
 });
-onShow(() => {
-  console.log("App Show");
-});
-onHide(() => {
-  console.log("App Hide");
-});
+
+interface VersionInfo {
+  version: string;
+  build: string;
+  update_url: string;
+  force_update: boolean;
+}
+
+const checkForUpdate = async () => {
+  try {
+    const res = await request<VersionInfo>({
+      url: '/version',
+      method: 'GET'
+    });
+
+    const latestBuild = parseInt(res.build || '0');
+    const currentBuild = parseInt(APP_VERSION);
+
+    if (latestBuild > currentBuild && res.update_url) {
+      // Silent download in background
+      downloadUpdate(res.update_url);
+    }
+  } catch (e) {
+    console.error('Version check failed:', e);
+  }
+};
+
+const downloadUpdate = (url: string) => {
+  uni.downloadFile({
+    url: url,
+    success: (downloadRes) => {
+      if (downloadRes.statusCode === 200) {
+        // Store for next launch
+        uni.setStorageSync('pendingUpdate', downloadRes.tempFilePath);
+      }
+    },
+    fail: (err) => {
+      console.error('Download failed:', err);
+    }
+  });
+};
+
+const applyPendingUpdate = () => {
+  const pendingPath = uni.getStorageSync('pendingUpdate') as string;
+  if (!pendingPath) return;
+
+  uni.removeStorageSync('pendingUpdate');
+
+  if (uni.canIUse('uni.installBundle')) {
+    uni.installBundle({
+      url: pendingPath,
+      fail: () => {
+        // Fallback
+        plus.runtime.install(pendingPath, { force: true }, () => {
+          uni.reLaunch({ url: '/' });
+        }, () => {});
+      }
+    });
+  } else {
+    plus.runtime.install(pendingPath, { force: true }, () => {
+      uni.reLaunch({ url: '/' });
+    }, () => {});
+  }
+};
 </script>
 
 <style lang="scss">

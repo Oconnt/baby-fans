@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"time"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	flag.Parse()
 	config.LoadConfig()
 	repository.InitDB()
 

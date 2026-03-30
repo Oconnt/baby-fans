@@ -51,6 +51,8 @@ func SetupRouter() *gin.Engine {
 	authHandler := &handler.AuthHandler{Service: authService}
 	pointsHandler := &handler.PointsHandler{Service: pointsService}
 	shopHandler := &handler.ShopHandler{Service: shopService}
+	versionHandler := &handler.VersionHandler{}
+	adminHandler := &handler.AdminHandler{}
 
 	// Health check
 	r.Any("/health", func(c *gin.Context) {
@@ -61,10 +63,17 @@ func SetupRouter() *gin.Engine {
 	public := r.Group("")
 	public.Use(middleware.IdempotencyMiddleware())
 	{
+		public.GET("/version", versionHandler.GetVersion)
 		public.POST("/login/face", authHandler.LoginFace)
 		public.GET("/login/code", authHandler.LoginCode)
 		public.POST("/register", authHandler.Register)
 		public.POST("/api/v1/auth/wechat/login", authHandler.WeChatLogin)
+	}
+
+	// Admin routes (should be protected in production, e.g., via IP whitelist)
+	admin := r.Group("/admin")
+	{
+		admin.POST("/reload", adminHandler.ReloadConfig)
 	}
 
 	// Global / Shop access for both
