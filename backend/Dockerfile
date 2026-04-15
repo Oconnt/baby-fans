@@ -50,4 +50,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Run migration then start the application
 # MySQL will be tried first; if unavailable, falls back to SQLite
 # Config file can be mounted to /app/config.yaml or specified via -config flag
-CMD ["/bin/sh", "-c", "/migrate && /baby-fans -config /app/config.yaml"]
+CMD ["/bin/sh", "-c", "/migrate -config /app/config.yaml && /baby-fans -config /app/config.yaml"]
