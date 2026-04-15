@@ -13,10 +13,10 @@ app:
 
 db:
   type: "mysql"
-  host: "baby-fans-db"
+  host: "rm-t4n7n14b44t31w984.mysql.singapore.rds.aliyuncs.com"
   port: 3306
-  username: "root"
-  password: "baby_fans_password"
+  username: "db_admin"
+  password: "Admin@359"
   name: "baby_fans"
 
 wechat:

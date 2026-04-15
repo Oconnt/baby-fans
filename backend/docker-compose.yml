@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: baby-fans-db
-    environment:
-      MYSQL_ROOT_PASSWORD: baby_fans_password
-      MYSQL_DATABASE: baby_fans
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pbaby_fans_password"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+#  db:
+#    image: mysql:8.0
+#    container_name: baby-fans-db
+#    environment:
+#      MYSQL_ROOT_PASSWORD: baby_fans_password
+#      MYSQL_DATABASE: baby_fans
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    healthcheck:
+#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pbaby_fans_password"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#      start_period: 30s
+#    restart: unless-stopped
 
   backend:
     image: crpi-7tr092vgmwfahhs5.cn-shenzhen.personal.cr.aliyuncs.com/oct-home/baby-fans:latest

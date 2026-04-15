@@ -53,14 +53,6 @@ func (d *DBConfig) GetMySQLDSN() string {
 		d.Username, d.Password, d.Host, d.Port, d.Name)
 }
 
-// GetSQLiteDSN returns SQLite DSN
-func (d *DBConfig) GetSQLiteDSN() string {
-	if d.DSN != "" {
-		return d.DSN
-	}
-	return "baby-fans.db"
-}
-
 type WeChatConfig struct {
 	AppID     string `mapstructure:"app_id"`
 	AppSecret string `mapstructure:"app_secret"`
