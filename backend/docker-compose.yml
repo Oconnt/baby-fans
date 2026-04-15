@@ -36,9 +36,9 @@ services:
     environment:
       - SERVER_PORT=18081
       - SERVER_MODE=release
-    depends_on:
-      db:
-        condition: service_healthy
+#    depends_on:
+#      db:
+#        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:18081/health"]
