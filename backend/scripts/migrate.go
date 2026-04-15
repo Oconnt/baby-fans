@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"baby-fans/config"
@@ -10,6 +11,8 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
 	log.Println("Starting database migration...")
 
 	// Load config to get DB path
