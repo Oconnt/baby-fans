@@ -55,8 +55,13 @@ export const request = <T = any>(options: RequestOptions): Promise<T> => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data as T);
         } else if (res.statusCode === 401) {
-          uni.removeStorageSync('token');
-          uni.navigateTo({ url: '/pages/index/index' });
+          // Only redirect to login for non-public routes (session expired)
+          // For public routes like /login/code, 401 just means auth failed
+          if (!isPublicRoute(options.url)) {
+            uni.removeStorageSync('token');
+            uni.removeStorageSync('userInfo');
+            uni.reLaunch({ url: '/pages/login/login' });
+          }
           reject(res.data);
         } else {
           reject(res.data);
